@@ -153,12 +153,17 @@ body::after {
 
 ::selection { background: var(--brass); color: #1a1206; }
 
-/* --- Theme toggle ----------------------------------------------------------*/
-.theme-toggle {
+/* --- Top-right actions (GitHub link + theme toggle) ------------------------*/
+.top-actions {
   position: fixed;
   top: clamp(12px, 2.4vw, 20px);
   right: clamp(12px, 2.4vw, 20px);
   z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.theme-toggle, .icon-link {
   width: 44px;
   height: 44px;
   display: grid;
@@ -174,9 +179,11 @@ body::after {
   backdrop-filter: blur(6px);
   transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
 }
-.theme-toggle:hover { background: var(--fill-2); border-color: var(--brass); box-shadow: 0 0 0 4px var(--brass-soft); }
-.theme-toggle:active { transform: scale(0.94); }
-.theme-toggle:focus-visible { outline: none; border-color: var(--brass); box-shadow: 0 0 0 4px var(--brass-soft); }
+.icon-link { text-decoration: none; }
+.icon-link svg { width: 21px; height: 21px; display: block; }
+.theme-toggle:hover, .icon-link:hover { background: var(--fill-2); border-color: var(--brass); box-shadow: 0 0 0 4px var(--brass-soft); }
+.theme-toggle:active, .icon-link:active { transform: scale(0.94); }
+.theme-toggle:focus-visible, .icon-link:focus-visible { outline: none; border-color: var(--brass); box-shadow: 0 0 0 4px var(--brass-soft); }
 .theme-toggle .ic {
   grid-area: 1 / 1;
   font-size: 1.15rem;
@@ -784,5 +791,5 @@ body::after {
   .box .note { font-size: 1rem; }
   .box.reed .note { font-size: 1.1rem; }
   .stage { border-radius: 18px; }
-  .theme-toggle { width: 40px; height: 40px; }
+  .theme-toggle, .icon-link { width: 40px; height: 40px; }
 }
