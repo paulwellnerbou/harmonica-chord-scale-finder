@@ -1,6 +1,6 @@
 # Harmonica Chord & Scale Finder
 
-**Live demo: <https://paulwellnerbou.github.io/harmonica-chord-scale-finder/>**
+**Live demo: <https://harmonica.wbou.dev/>**
 
 A client-only web app that shows **where a chord or scale lives on a 10-hole
 diatonic (Richter-tuned) harmonica** — including draw/blow notes, bends,
