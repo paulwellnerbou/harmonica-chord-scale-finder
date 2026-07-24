@@ -194,7 +194,8 @@ function fitHarp() {
   const area = document.querySelector('.harp-area');
   const harp = document.getElementById('harp');
   if (!fit || !area || !harp) return;
-  const gutters = parseFloat(getComputedStyle(area).paddingLeft) * 2;
+  const cs = getComputedStyle(area);
+  const gutters = parseFloat(cs.paddingLeft) * 2;
   const natW = (parseFloat(getComputedStyle(harp).minWidth) || 628) + gutters;
   const avail = fit.clientWidth;
   if (avail < natW - 0.5) {
@@ -204,7 +205,9 @@ function fitHarp() {
     const h = area.offsetHeight;
     area.style.transformOrigin = 'top left';
     area.style.transform = `scale(${scale})`;
-    fit.style.height = `${h * scale}px`;
+    // clientWidth excludes padding; height must add the wrapper's vertical padding back.
+    const padY = parseFloat(getComputedStyle(fit).paddingTop) * 2;
+    fit.style.height = `${h * scale + padY}px`;
   } else {
     area.style.width = '';
     area.style.transform = '';

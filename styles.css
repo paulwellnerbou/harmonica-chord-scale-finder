@@ -75,7 +75,6 @@
   --reed-h: 62px;
   --num-h: 34px;
   --row-gap: 8px;
-  --harp-pad-y: 12px; /* .harp's vertical overflow padding; also offsets the side labels */
   font-synthesis-weight: none;
 }
 
@@ -302,7 +301,7 @@ body::after {
 }
 .cbx-btn:hover { background: var(--input-bg-focus); border-color: color-mix(in srgb, var(--brass) 45%, var(--line)); }
 .cbx-btn:focus-visible { outline: none; border-color: var(--brass); box-shadow: var(--input-shadow), 0 0 0 3px var(--brass-soft); }
-.cbx-caret { font-size: 0.7rem; color: var(--muted); transition: rotate 0.2s ease, color 0.15s ease; }
+.cbx-caret { font-size: 0.9rem; color: var(--muted); transition: rotate 0.2s ease, color 0.15s ease; }
 .cbx-btn[aria-expanded="true"] .cbx-caret { rotate: 180deg; color: var(--brass); }
 .cbx-menu {
   top: calc(100% + 6px); left: 0; right: 0; min-width: 100%;
@@ -407,8 +406,9 @@ body::after {
 }
 
 /* Wrapper that clips the harp; JS scales .harp-area down to fit narrow screens
-   (a "zoom to fit" instead of a horizontal scrollbar). */
-.harp-fit { overflow: hidden; }
+   (a "zoom to fit" instead of a horizontal scrollbar). The vertical padding is
+   clip room for the top/bottom rows' hover-lift + shadow. */
+.harp-fit { overflow: hidden; padding: 14px 0; }
 .harp-area {
   position: relative;
   padding: 0 30px; /* gutters that hold the side labels */
@@ -426,9 +426,9 @@ body::after {
 .side-label.right { left: auto; right: 0; }
 .side-label:not(.right) { left: 0; }
 .side-label { display: flex; align-items: center; justify-content: center; height: var(--reed-h); }
-.side-blow { top: calc(2 * var(--box-h) + 2 * var(--row-gap) + var(--harp-pad-y));
+.side-blow { top: calc(2 * var(--box-h) + 2 * var(--row-gap));
   writing-mode: vertical-rl; transform: rotate(180deg); }
-.side-draw { top: calc(2 * var(--box-h) + var(--reed-h) + var(--num-h) + 4 * var(--row-gap) + var(--harp-pad-y));
+.side-draw { top: calc(2 * var(--box-h) + var(--reed-h) + var(--num-h) + 4 * var(--row-gap));
   writing-mode: vertical-rl; }
 
 .harp {
@@ -446,13 +446,7 @@ body::after {
   gap: var(--row-gap) 8px;
   min-width: 628px;
   position: relative;
-  overflow-x: auto;
-  /* overflow-x:auto also clips the y-axis, which would cut off the top/bottom
-     rows' hover-lift + shadow. Pad vertically for room, then cancel it with a
-     matching negative margin so the grid (and the side-label alignment) doesn't
-     shift. The 6px sides absorb the number bar's -6px overhang. */
-  padding: var(--harp-pad-y) 6px;
-  margin: calc(-1 * var(--harp-pad-y)) 0;
+  padding: 0 6px; /* absorbs the number bar's -6px overhang */
 }
 
 /* Brushed cover plate behind the blow row, number bar and draw row. */
