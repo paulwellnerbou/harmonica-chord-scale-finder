@@ -3,11 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#15110c" />
   <title>Harmonica Chord &amp; Scale Finder</title>
+  <!-- Set the theme before first paint to avoid a flash of the wrong mode. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('harp-theme')
+          || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.dataset.theme = t;
+      } catch (e) { document.documentElement.dataset.theme = 'dark'; }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🎵</text></svg>" />
 </head>
 <body>
+  <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle light / dark theme" aria-label="Switch theme">
+    <span class="ic ic-sun" aria-hidden="true">☀</span>
+    <span class="ic ic-moon" aria-hidden="true">☾</span>
+  </button>
+
   <header class="topbar">
     <h1>Harmonica Chord &amp; Scale Finder</h1>
     <p class="tagline">Which holes, bends &amp; overblows play your chord or scale on a diatonic (Richter) harp</p>
@@ -19,16 +38,13 @@
       <input id="query" type="text" placeholder="e.g. C, Am7, E7, F#9, C Blues, Em Pentatonic" autocomplete="off" spellcheck="false" />
     </div>
     <div class="field">
-      <label for="key">Harp key</label>
-      <select id="key"></select>
-    </div>
-    <button id="play" class="btn" title="Play the highlighted notes">▶ Play</button>
-    <div class="split-btn">
-      <button id="img-action" class="btn btn-secondary" title="Copy the harp layout as an image (transparent background)">⧉ Copy image</button>
-      <button id="img-caret" class="btn btn-secondary caret" aria-haspopup="true" aria-expanded="false" title="Choose copy or download">▾</button>
-      <div id="img-menu" class="img-menu" hidden>
-        <button class="img-opt" data-mode="copy">⧉ Copy image</button>
-        <button class="img-opt" data-mode="download">⤓ Download image</button>
+      <span class="field-label" id="key-label">Harp key</span>
+      <div class="cbx" id="key-cbx">
+        <button type="button" class="cbx-btn" id="key-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="key-label key-val">
+          <span class="cbx-val" id="key-val">C</span>
+          <span class="cbx-caret" aria-hidden="true">▾</span>
+        </button>
+        <ul class="cbx-menu pop" id="key-menu" role="listbox" aria-labelledby="key-label" tabindex="-1"></ul>
       </div>
     </div>
   </section>
@@ -47,6 +63,18 @@
   </section>
 
   <section class="stage">
+    <button id="play" class="card-btn card-play" type="button" title="Play the highlighted notes" aria-label="Play the highlighted notes">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.79-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14Z" /></svg>
+    </button>
+    <div class="card-img" id="card-img">
+      <button id="img-btn" class="card-btn" type="button" aria-haspopup="menu" aria-expanded="false" title="Copy or download the layout as an image" aria-label="Copy or download image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5" /><circle cx="8.5" cy="9" r="1.6" /><path d="m20 15-4.5-4.5L5 21" /></svg>
+      </button>
+      <div id="img-menu" class="img-menu pop" role="menu">
+        <button class="img-opt" data-mode="copy" role="menuitem">⧉ Copy image</button>
+        <button class="img-opt" data-mode="download" role="menuitem">⤓ Download image</button>
+      </div>
+    </div>
     <div class="harp-title" id="harp-title">Harp in C</div>
     <div class="harp-area">
       <span class="side-label side-blow" aria-hidden="true">BLOW</span>
@@ -58,16 +86,56 @@
   </section>
 
   <section class="toggles">
-    <label><input type="checkbox" id="toggle-bends" checked /> Show bends</label>
-    <label><input type="checkbox" id="toggle-over" checked /> Show overblows / overdraws</label>
+    <label class="switch">
+      <input type="checkbox" id="toggle-draw-bend" checked />
+      <span class="switch-track"><span class="switch-thumb"></span></span>
+      <span class="switch-text">Draw bends</span>
+    </label>
+    <label class="switch">
+      <input type="checkbox" id="toggle-blow-bend" checked />
+      <span class="switch-track"><span class="switch-thumb"></span></span>
+      <span class="switch-text">Blow bends</span>
+    </label>
+    <label class="switch">
+      <input type="checkbox" id="toggle-overblow" checked />
+      <span class="switch-track"><span class="switch-thumb"></span></span>
+      <span class="switch-text">Overblows</span>
+    </label>
+    <label class="switch">
+      <input type="checkbox" id="toggle-overdraw" checked />
+      <span class="switch-track"><span class="switch-thumb"></span></span>
+      <span class="switch-text">Overdraws</span>
+    </label>
   </section>
+
+  <p class="play-hint">Diatonic 10-hole Richter tuning. Click any note to hear it.</p>
 
   <section id="info" class="info"></section>
 
+  <a class="cross-promo" href="https://chords.wbou.dev/" target="_blank" rel="noopener">
+    <span class="cross-promo-mark" aria-hidden="true">
+      <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="10" width="22" height="2.6" rx="1.3" fill="currentColor" stroke="none" />
+        <path d="M13 12.5v19M19 12.5v19M25 12.5v19M31 12.5v19" />
+        <path d="M9 19h22M9 25.5h22M9 32h22" />
+        <circle cx="19" cy="15.7" r="2.3" fill="currentColor" stroke="none" />
+        <circle cx="25" cy="22.2" r="2.3" fill="currentColor" stroke="none" />
+      </svg>
+    </span>
+    <span class="cross-promo-body">
+      <span class="cross-promo-teaser">Play ukulele, mandolin or banjo, too?</span>
+      <span class="cross-promo-desc">Print chord diagrams and explore voicings with <b>Chord Charts</b>.</span>
+    </span>
+    <span class="cross-promo-go" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8" /></svg>
+    </span>
+  </a>
+
   <footer class="foot">
-    <p>Diatonic 10-hole Richter tuning. Click any note to hear it.</p>
-    <p class="promo">🎸 Do you play ukulele, mandolin or banjo, too?
-      Print chord diagrams with <a href="https://chords.wbou.dev/">Chord Charts</a>.</p>
+    <p class="foot-meta">
+      <span>No cookies, no tracking.</span>
+      <span>Made with 🎶 by <a href="https://paul.wellnerbou.de" target="_blank" rel="noopener">Paul Wellner Bou</a></span>
+    </p>
   </footer>
 
   <script type="module" src="src/app.js"></script>

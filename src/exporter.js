@@ -9,17 +9,19 @@ const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, TITLE_GAP = 12;
 const GUTTER = 30; // side gutters holding the vertical BLOW / DRAW labels
 const ROW_H = [0, 50, 50, 70, 38, 70, 50, 50, 50]; // 1-indexed: rows 1..8
 
-const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+const FONT = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+// Mirrors the CSS custom properties in styles.css so a copied image matches the
+// on-screen (bright) instrument. The export keeps a transparent background.
 const COLORS = {
-  reed: ['#e7d8f7', '#b493df'],
-  bend: ['#bfe6f8', '#6cb9de'],
-  over: ['#ffe0b8', '#e8a24a'],
-  match: ['#c7f0d6', '#1f9d55'],
-  tone: ['#e4f7ec', '#9bd9b5'],
-  root: ['#ffe0bf', '#e8730c'],
-  panel: '#ede3fa',
-  bar: '#34383d',
-  ink: '#24303a',
+  reed: ['#f7f0e2', '#d8caad'],
+  bend: ['#d7e8ed', '#83b3bf'],
+  over: ['#f8e5c3', '#d3a45f'],
+  match: ['#c9f0d7', '#1f9d55'],
+  tone: ['#e2f5ea', '#7fc79b'],
+  root: ['#ffe3c1', '#ec7a12'],
+  panel: '#ebe1cf',
+  bar: '#1c1610',
+  ink: '#221b12',
 };
 const TAG = { overblow: 'OB', overdraw: 'OD' };
 
@@ -49,7 +51,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-export function renderHarpImage({ key, parsed, triad, showBends, showOver, title }) {
+export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title }) {
   const harp = buildHarp(key);
 
   const rowTop = [0, 0];
@@ -117,12 +119,12 @@ export function renderHarpImage({ key, parsed, triad, showBends, showOver, title
 
     if (hit) {
       ctx.font = `700 11px ${FONT}`;
-      ctx.fillStyle = 'rgba(36,48,58,0.7)';
+      ctx.fillStyle = 'rgba(34,27,18,0.66)';
       ctx.fillText(degreeOf(n.pc, parsed.root), x + COL_W / 2, top + h / 2 + 12);
     }
     if (TAG[n.type]) {
       ctx.font = `800 9px ${FONT}`;
-      ctx.fillStyle = 'rgba(36,48,58,0.6)';
+      ctx.fillStyle = 'rgba(200,128,31,0.9)';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'top';
       ctx.fillText(TAG[n.type], x + COL_W - 6, top + 5);
@@ -133,8 +135,10 @@ export function renderHarpImage({ key, parsed, triad, showBends, showOver, title
   for (let h = 1; h <= 10; h++) {
     const c = harp[h];
     const boxes = [c.blow, c.draw];
-    if (showBends) boxes.push(...c.drawBends, ...c.blowBends);
-    if (showOver) { if (c.overblow) boxes.push(c.overblow); if (c.overdraw) boxes.push(c.overdraw); }
+    if (showDrawBends) boxes.push(...c.drawBends);
+    if (showBlowBends) boxes.push(...c.blowBends);
+    if (showOverblow && c.overblow) boxes.push(c.overblow);
+    if (showOverdraw && c.overdraw) boxes.push(c.overdraw);
     boxes.forEach((n) => drawBox(n, colX(h)));
   }
 
@@ -142,10 +146,10 @@ export function renderHarpImage({ key, parsed, triad, showBends, showOver, title
   for (let h = 1; h <= 10; h++) {
     const cx = colX(h) + COL_W / 2;
     const chipW = 26, chipH = 22;
-    ctx.fillStyle = '#000';
-    roundRect(ctx, cx - chipW / 2, barY + (barH - chipH) / 2, chipW, chipH, 5);
+    ctx.fillStyle = '#0b0805';
+    roundRect(ctx, cx - chipW / 2, barY + (barH - chipH) / 2, chipW, chipH, 6);
     ctx.fill();
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#f2e7d3';
     ctx.font = `700 13px ${FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -156,7 +160,7 @@ export function renderHarpImage({ key, parsed, triad, showBends, showOver, title
   // reed rows (blow reads up, draw down).
   const blowY = rowTop[3] + ROW_H[3] / 2;
   const drawY = rowTop[5] + ROW_H[5] / 2;
-  ctx.fillStyle = '#5c6b78';
+  ctx.fillStyle = '#8a7c66';
   ctx.font = `800 13px ${FONT}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';

@@ -1,50 +1,226 @@
+/* ===========================================================================
+   Theme tokens. The PAGE CHROME switches light/dark; the INSTRUMENT (plate,
+   comb, note keys) stays bright in both themes so the transparent PNG export
+   keeps matching the on-screen harp.
+   =========================================================================== */
 :root {
-  --bg: #dcecf4;
-  --bg-2: #eaf5fb;
-  --ink: #24303a;
-  --muted: #5c6b78;
+  color-scheme: dark;
 
-  --reed-fill: #e7d8f7;
-  --reed-border: #b493df;
-  --reed-panel: #ede3fa;
+  /* Warm "blues club" backdrop the instrument is lit against. */
+  --bg-0: #14100b;
+  --bg-1: #1e1710;
+  --glow: rgba(232, 156, 62, 0.20);
+  --backdrop:
+    radial-gradient(115% 75% at 50% -8%, var(--glow), transparent 55%),
+    radial-gradient(80% 55% at 50% 4%, rgba(200, 120, 40, 0.10), transparent 60%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0) 62%);
+  --grain-opacity: 0.05;
+  --grain-blend: overlay;
 
-  --bend-fill: #bfe6f8;
-  --bend-border: #6cb9de;
+  --ink: #f4ecdd;
+  --muted: #ab9c85;
+  --faint: #7c6f5d;
 
-  --over-fill: #ffe0b8;
-  --over-border: #e8a24a;
+  /* Signature brass accent — the reed metal of a real harp. */
+  --brass: #e8a53f;
+  --brass-lit: #f4bd60;
+  --brass-deep: #c8801f;
+  --brass-soft: rgba(232, 165, 63, 0.14);
 
-  --bar: #34383d;
+  /* Solid CTA brass — same in both themes so buttons/switches stay vivid. */
+  --btn-bg: #e79a2b;
+  --btn-fg: #2a1600;
 
-  --match: #1f9d55;
-  --match-fill: #c7f0d6;
-  --tone: #9bd9b5;
-  --tone-fill: #e4f7ec;
-  --root: #e8730c;
-  --root-fill: #ffe0bf;
+  --line: rgba(214, 196, 158, 0.22);
+  --fill-1: rgba(255, 255, 255, 0.045); /* raised fill: inputs, ghost buttons, pills */
+  --fill-2: rgba(255, 255, 255, 0.09);  /* its hover */
+  --track-off: rgba(255, 255, 255, 0.16);
+
+  --surface: #2a2118;                    /* popover menus */
+  --surface-border: rgba(242, 225, 188, 0.16);
+  --surface-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+
+  --stage-bg:
+    radial-gradient(120% 120% at 50% -20%, rgba(232, 165, 63, 0.09), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.16));
+  --stage-border: rgba(214, 196, 158, 0.12);
+  --stage-shadow: 0 34px 70px -34px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.14));
+  --panel-border: var(--line);
+  --panel-shadow: 0 20px 44px -28px rgba(0, 0, 0, 0.7);
+
+  /* --- Instrument (shared across themes) --- */
+  --plate-hi: #f4ecdd;
+  --plate-lo: #e2d8c4;
+  --plate-edge: #c9ba9d;
+  --comb-hi: #2c2720;
+  --comb-lo: #16110c;
+  --box-ink: #221b12;
+
+  --reed-fill: #f7f0e2;  --reed-border: #d8caad;
+  --bend-fill: #d7e8ed;  --bend-border: #83b3bf;
+  --over-fill: #f8e5c3;  --over-border: #d3a45f;
+
+  --match: #1f9d55;  --match-fill: #c9f0d7;
+  --tone:  #7fc79b;  --tone-fill:  #e2f5ea;
+  --root:  #ec7a12;  --root-fill:  #ffe3c1;
 
   --radius: 12px;
-  --box-h: 46px;   /* bend / overblow row height */
-  --reed-h: 62px;  /* blow / draw row height */
-  --num-h: 34px;   /* number-bar row height */
-  --row-gap: 8px;  /* gap between harp rows */
+  --box-h: 46px;
+  --reed-h: 62px;
+  --num-h: 34px;
+  --row-gap: 8px;
+  --harp-pad-y: 12px; /* .harp's vertical overflow padding; also offsets the side labels */
   font-synthesis-weight: none;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-0: #ece1cf;
+  --bg-1: #f6efe1;
+  --glow: rgba(230, 150, 55, 0.16);
+  --backdrop:
+    radial-gradient(115% 72% at 50% -8%, var(--glow), transparent 55%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0) 72%);
+  --grain-opacity: 0.035;
+  --grain-blend: multiply;
+
+  --ink: #2c2318;
+  --muted: #6d6350;
+  --faint: #9a8d76;
+
+  --brass: #a9670f;
+  --brass-lit: #c9821b;
+  --brass-deep: #8a520a;
+  --brass-soft: rgba(169, 103, 15, 0.12);
+
+  --line: rgba(74, 56, 26, 0.16);
+  --fill-1: rgba(74, 56, 26, 0.05);
+  --fill-2: rgba(74, 56, 26, 0.1);
+  --track-off: rgba(74, 56, 26, 0.2);
+
+  --surface: #fffaf0;
+  --surface-border: rgba(74, 56, 26, 0.14);
+  --surface-shadow: 0 18px 44px rgba(80, 60, 25, 0.22);
+
+  --stage-bg:
+    radial-gradient(120% 120% at 50% -20%, rgba(230, 150, 55, 0.1), transparent 58%),
+    linear-gradient(180deg, #fffaf0, #f4ead8);
+  --stage-border: rgba(74, 56, 26, 0.14);
+  --stage-shadow: 0 26px 54px -30px rgba(80, 60, 25, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  --panel-bg: linear-gradient(180deg, #fffaf0, #f7eede);
+  --panel-border: rgba(74, 56, 26, 0.13);
+  --panel-shadow: 0 18px 40px -26px rgba(80, 60, 25, 0.32);
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--ink);
-  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  background: var(--bg-0);
   min-height: 100vh;
-  padding: 20px clamp(12px, 4vw, 40px) 48px;
+  padding: clamp(20px, 4vw, 42px) clamp(12px, 4vw, 40px) 56px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
-.topbar { text-align: center; margin-bottom: 18px; }
-.topbar h1 { margin: 0; font-size: clamp(1.3rem, 3.4vw, 2rem); letter-spacing: -0.01em; }
-.tagline { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; }
+/* Layer 1: warm spotlight washing over the stage + vignette. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: var(--backdrop);
+  transition: background 0.4s ease;
+}
+/* Layer 2: fine film grain for analog texture. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection { background: var(--brass); color: #1a1206; }
+
+/* --- Theme toggle ----------------------------------------------------------*/
+.theme-toggle {
+  position: fixed;
+  top: clamp(12px, 2.4vw, 20px);
+  right: clamp(12px, 2.4vw, 20px);
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--fill-1);
+  color: var(--brass-lit);
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
+}
+.theme-toggle:hover { background: var(--fill-2); border-color: var(--brass); box-shadow: 0 0 0 4px var(--brass-soft); }
+.theme-toggle:active { transform: scale(0.94); }
+.theme-toggle:focus-visible { outline: none; border-color: var(--brass); box-shadow: 0 0 0 4px var(--brass-soft); }
+.theme-toggle .ic {
+  grid-area: 1 / 1;
+  font-size: 1.15rem;
+  line-height: 1;
+  transition: opacity 0.28s ease, rotate 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), scale 0.3s ease;
+}
+/* Show the icon for the theme you'd switch TO. */
+:root[data-theme="dark"]  .ic-sun  { opacity: 1;   rotate: 0deg;   scale: 1;    }
+:root[data-theme="dark"]  .ic-moon { opacity: 0;   rotate: -90deg; scale: 0.4;  }
+:root[data-theme="light"] .ic-sun  { opacity: 0;   rotate: 90deg;  scale: 0.4;  }
+:root[data-theme="light"] .ic-moon { opacity: 1;   rotate: 0deg;   scale: 1;    }
+
+/* --- Header ----------------------------------------------------------------*/
+.topbar { text-align: center; margin-bottom: 26px; }
+.topbar h1 {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(2rem, 5.2vw, 3.15rem);
+  line-height: 1.03;
+  letter-spacing: -0.018em;
+  background: linear-gradient(168deg, var(--ink) 20%, var(--brass) 118%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.tagline {
+  margin: 9px auto 0;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.topbar::after {
+  content: "";
+  display: block;
+  width: 66px;
+  height: 3px;
+  margin: 16px auto 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--brass), transparent);
+}
 
 /* --- Controls --------------------------------------------------------------*/
 .controls {
@@ -52,68 +228,148 @@ body {
   gap: 14px;
   align-items: flex-end;
   flex-wrap: wrap;
-  max-width: 860px;
-  margin: 0 auto 12px;
+  max-width: 880px;
+  margin: 0 auto 14px;
+  position: relative;
+  z-index: 20; /* keep open dropdowns above the stage card below */
 }
-.field { display: flex; flex-direction: column; gap: 5px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
 .field.grow { flex: 1 1 320px; }
-.field label { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-.field input, .field select {
+.field label, .field-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+.field input {
+  font: inherit;
   font-size: 1.05rem;
-  padding: 11px 13px;
-  border: 1.5px solid var(--reed-border);
-  border-radius: 10px;
-  background: #fff;
+  padding: 12px 14px;
+  height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--fill-1);
   color: var(--ink);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.field input:focus, .field select:focus { outline: 2px solid var(--root); outline-offset: 1px; }
-.field select { cursor: pointer; min-width: 84px; }
-
-.btn {
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 11px 18px;
-  border: none;
-  border-radius: 10px;
-  background: #7b4fc4;
-  color: #fff;
-  cursor: pointer;
-  height: 46px;
+.field input::placeholder { color: var(--faint); }
+.field input:hover { border-color: color-mix(in srgb, var(--brass) 45%, var(--line)); }
+.field input:focus {
+  outline: none;
+  border-color: var(--brass);
+  background: var(--fill-2);
+  box-shadow: 0 0 0 3px var(--brass-soft);
 }
-.btn:hover { background: #6a3fb3; }
-.btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn:disabled:hover { background: #7b4fc4; }
 
-.btn-secondary { background: #fff; color: #6a3fb3; border: 1.5px solid var(--reed-border); }
-.btn-secondary:hover { background: var(--reed-fill); }
-.btn-secondary:disabled:hover { background: #fff; }
+/* --- Custom combobox (harp key) -------------------------------------------*/
+.cbx { position: relative; }
+.cbx-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-width: 100px; height: 48px; padding: 0 12px 0 14px;
+  font: inherit; font-size: 1.05rem; font-weight: 600;
+  color: var(--ink); background: var(--fill-1);
+  border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.cbx-btn:hover { background: var(--fill-2); border-color: color-mix(in srgb, var(--brass) 45%, var(--line)); }
+.cbx-btn:focus-visible { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px var(--brass-soft); }
+.cbx-caret { font-size: 0.7rem; color: var(--muted); transition: rotate 0.2s ease, color 0.15s ease; }
+.cbx-btn[aria-expanded="true"] .cbx-caret { rotate: 180deg; color: var(--brass); }
+.cbx-menu {
+  top: calc(100% + 6px); left: 0; right: 0; min-width: 100%;
+  max-height: 288px; overflow-y: auto;
+  list-style: none; margin: 0;
+}
+.cbx-opt {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 12px; border-radius: 8px; cursor: pointer;
+  color: var(--ink); font-weight: 600; font-size: 1rem;
+  transition: background 0.13s ease, color 0.13s ease;
+}
+.cbx-opt::after { content: ""; font-size: 0.85em; color: var(--brass); }
+.cbx-opt[aria-selected="true"]::after { content: "✓"; }
+.cbx-opt:hover, .cbx-opt.active { background: var(--brass-soft); color: var(--brass-lit); }
+
+/* --- Shared popover animation ---------------------------------------------*/
+.pop {
+  position: absolute;
+  z-index: 30;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  box-shadow: var(--surface-shadow);
+  padding: 5px;
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -6px;
+  scale: 0.97;
+  transform-origin: top center;
+  transition:
+    opacity 0.16s ease,
+    translate 0.16s ease,
+    scale 0.16s ease,
+    visibility 0s linear 0.16s;
+}
+.pop.open {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  scale: 1;
+  transition:
+    opacity 0.16s ease,
+    translate 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    scale 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s;
+}
 
 /* --- Examples --------------------------------------------------------------*/
 .examples {
   display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-  justify-content: center; max-width: 860px; margin: 0 auto 22px;
+  justify-content: center; max-width: 880px; margin: 0 auto 26px;
   color: var(--muted); font-size: 0.9rem;
 }
+.examples > span { color: var(--faint); font-weight: 600; letter-spacing: 0.02em; }
 .example {
-  border: 1px solid var(--reed-border);
-  background: #fff; color: var(--ink);
-  padding: 5px 12px; border-radius: 999px; cursor: pointer; font-size: 0.88rem;
+  border: 1px solid var(--line);
+  background: var(--fill-1);
+  color: var(--ink);
+  padding: 6px 13px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: 0.86rem; font-weight: 600;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.08s ease;
 }
-.example:hover { background: var(--reed-fill); }
+.example:hover {
+  background: var(--brass-soft);
+  border-color: var(--brass);
+  color: var(--brass-lit);
+  transform: translateY(-1px);
+}
+.example:active { transform: translateY(0); }
 
 /* --- Harp stage ------------------------------------------------------------*/
 .stage {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 6px 2px 4px;
+  position: relative;
+  max-width: 1080px;
+  margin: 4px auto 0;
+  padding: clamp(16px, 3vw, 30px) clamp(8px, 2vw, 22px) clamp(14px, 2.4vw, 24px);
+  border-radius: 22px;
+  background: var(--stage-bg);
+  border: 1px solid var(--stage-border);
+  box-shadow: var(--stage-shadow);
+  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
 .harp-title {
-  text-align: center; font-weight: 700; color: var(--ink);
-  margin-bottom: 8px; font-size: 1.15rem;
+  text-align: center;
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 14px;
+  padding: 0 54px; /* clear the corner play / image buttons */
+  font-size: clamp(1.1rem, 2.4vw, 1.4rem);
+  letter-spacing: 0.005em;
 }
 
-/* Positioning context for the rotated BLOW / DRAW side labels. */
 .harp-area {
   position: relative;
   padding: 0 30px; /* gutters that hold the side labels */
@@ -122,19 +378,18 @@ body {
   position: absolute;
   width: 26px;
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
-  color: var(--muted);
+  letter-spacing: 0.2em;
+  color: var(--faint);
   pointer-events: none;
 }
 .side-label.right { left: auto; right: 0; }
 .side-label:not(.right) { left: 0; }
-/* Aligned with the blow / draw reed rows (blow reads upward, draw downward). */
 .side-label { display: flex; align-items: center; justify-content: center; height: var(--reed-h); }
-.side-blow { top: calc(2 * var(--box-h) + 2 * var(--row-gap));
+.side-blow { top: calc(2 * var(--box-h) + 2 * var(--row-gap) + var(--harp-pad-y));
   writing-mode: vertical-rl; transform: rotate(180deg); }
-.side-draw { top: calc(2 * var(--box-h) + var(--reed-h) + var(--num-h) + 4 * var(--row-gap));
+.side-draw { top: calc(2 * var(--box-h) + var(--reed-h) + var(--num-h) + 4 * var(--row-gap) + var(--harp-pad-y));
   writing-mode: vertical-rl; }
 
 .harp {
@@ -153,45 +408,57 @@ body {
   min-width: 628px;
   position: relative;
   overflow-x: auto;
-  /* Absorbs the number bar's -6px overhang so no scrollbar shows unless needed. */
-  padding: 0 6px;
+  /* overflow-x:auto also clips the y-axis, which would cut off the top/bottom
+     rows' hover-lift + shadow. Pad vertically for room, then cancel it with a
+     matching negative margin so the grid (and the side-label alignment) doesn't
+     shift. The 6px sides absorb the number bar's -6px overhang. */
+  padding: var(--harp-pad-y) 6px;
+  margin: calc(-1 * var(--harp-pad-y)) 0;
 }
 
-/* Unified rounded panel behind the blow row, number bar and draw row. */
+/* Brushed cover plate behind the blow row, number bar and draw row. */
 .reed-panel {
   grid-column: 1 / -1;
   grid-row: 3 / 6;
-  background: var(--reed-panel);
-  border: 1.5px solid var(--reed-border);
+  background: linear-gradient(180deg, var(--plate-hi), var(--plate-lo));
+  border: 1px solid var(--plate-edge);
   border-radius: 16px;
   z-index: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -3px 8px rgba(120, 96, 54, 0.16);
 }
-/* Dark full-width number bar overlapping the panel's middle. */
+/* Dark comb: full-width number bar overlapping the plate's middle. */
 .number-bar {
   grid-column: 1 / -1;
   grid-row: 4;
-  background: var(--bar);
-  border-radius: 7px;
+  background: linear-gradient(180deg, var(--comb-hi), var(--comb-lo));
+  border-radius: 8px;
   z-index: 1;
   align-self: center;
   height: 30px;
   margin: 0 -6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.4);
 }
 .hole-num {
   z-index: 2;
   align-self: center;
   justify-self: center;
-  color: #fff;
-  background: #000;
-  border-radius: 5px;
+  color: #f2e7d3;
+  background: linear-gradient(180deg, #100c08, #000);
+  border-radius: 6px;
   font-size: 0.82rem;
   font-weight: 700;
   min-width: 22px;
   height: 22px;
   display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* --- Note boxes ------------------------------------------------------------*/
+/* --- Note keys -------------------------------------------------------------*/
 .box {
   position: relative;
   z-index: 1;
@@ -201,19 +468,37 @@ body {
   justify-content: center;
   border-radius: 10px;
   border: 1.5px solid transparent;
+  color: var(--box-ink);
   font: inherit;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.06s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.28);
+  /* Independent translate/scale so the hover lift and the show/hide scale
+     don't fight over `transform`. */
+  transition:
+    translate 0.1s ease,
+    box-shadow 0.15s ease,
+    opacity 0.22s ease,
+    scale 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.14s ease,
+    visibility 0s;
 }
-.box:hover { transform: translateY(-1px); }
-.box:active { transform: translateY(0); }
+.box:hover {
+  translate: 0 -2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 8px 16px -5px rgba(0, 0, 0, 0.5);
+}
+.box:active { translate: 0 0; }
+.box:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .box .note { font-size: 1.15rem; font-weight: 700; line-height: 1; }
-.box .deg { font-size: 0.62rem; font-weight: 700; opacity: 0.7; margin-top: 2px; }
+.box .deg { font-size: 0.62rem; font-weight: 700; opacity: 0.62; margin-top: 3px; }
 .box .tag {
   position: absolute; top: 3px; right: 4px;
   font-size: 0.5rem; font-weight: 800; letter-spacing: 0.03em;
-  opacity: 0.65;
+  color: var(--brass-deep); opacity: 0.85;
 }
 
 .box.reed { background: var(--reed-fill); border-color: var(--reed-border); }
@@ -221,13 +506,15 @@ body {
 .box.bend { background: var(--bend-fill); border-color: var(--bend-border); }
 .box.over { background: var(--over-fill); border-color: var(--over-border); }
 
-/* Highlight states */
+/* Highlight states — lit keys glow warmly off the dark stage. */
 .box.match {
   background: var(--match-fill);
   border-color: var(--match);
-  box-shadow: 0 0 0 2px var(--match) inset;
+  box-shadow:
+    inset 0 0 0 2px var(--match),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 4px 16px -6px rgba(31, 157, 85, 0.55);
 }
-/* Non-triad scale tones: paler, no ring, so the triad (match) stands out. */
 .box.tone {
   background: var(--tone-fill);
   border-color: var(--tone);
@@ -236,83 +523,266 @@ body {
 .box.root {
   background: var(--root-fill);
   border-color: var(--root);
-  box-shadow: 0 0 0 2.5px var(--root) inset;
+  box-shadow:
+    inset 0 0 0 2.5px var(--root),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 5px 18px -6px rgba(236, 122, 18, 0.6);
 }
-.box.dim { opacity: 0.32; filter: saturate(0.5); }
+.box.dim {
+  opacity: 0.28;
+  filter: saturate(0.5);
+  box-shadow: none;
+}
 .box.dim:hover { opacity: 0.6; }
 
-/* --- Toggles ---------------------------------------------------------------*/
+/* Animated show/hide of bends & overblows (grid rows keep their height, so the
+   keys fade + shrink in place — no layout shift). visibility flips after the
+   fade so hidden keys leave the tab order. */
+.harp.hide-draw-bend .box.draw-bend,
+.harp.hide-blow-bend .box.blow-bend,
+.harp.hide-overblow  .box.overblow,
+.harp.hide-overdraw  .box.overdraw {
+  opacity: 0;
+  scale: 0.78;
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    translate 0.1s ease,
+    box-shadow 0.15s ease,
+    opacity 0.22s ease,
+    scale 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.14s ease,
+    visibility 0s linear 0.22s;
+}
+
+/* --- Toggles (animated switches) ------------------------------------------*/
 .toggles {
-  display: flex; gap: 22px; justify-content: center;
-  margin: 18px auto 0; flex-wrap: wrap;
-  font-size: 0.92rem; color: var(--muted);
+  display: flex; gap: 26px; justify-content: center;
+  margin: 22px auto 0; flex-wrap: wrap;
 }
-.toggles label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-/* --- Split image button (copy / download) ---------------------------------*/
-.split-btn { position: relative; display: inline-flex; }
-.split-btn #img-action { border-radius: 10px 0 0 10px; }
-.split-btn .caret {
-  border-radius: 0 10px 10px 0;
-  border-left: 1px solid var(--reed-border);
-  padding: 0 10px; min-width: 0; font-size: 0.75rem;
+.play-hint {
+  max-width: 880px;
+  margin: 12px auto 0;
+  text-align: center;
+  color: var(--faint);
+  font-size: 0.8rem;
 }
+.switch { display: inline-flex; align-items: center; gap: 11px; cursor: pointer; user-select: none; }
+.switch input {
+  position: absolute; opacity: 0; width: 1px; height: 1px; margin: -1px; /* focusable but hidden */
+}
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 44px; height: 25px;
+  border-radius: 999px;
+  background: var(--track-off);
+  border: 1px solid var(--line);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+.switch-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  transition: translate 0.26s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
+}
+.switch input:checked + .switch-track {
+  background: var(--btn-bg);
+  border-color: transparent;
+}
+.switch input:checked + .switch-track .switch-thumb { translate: 19px 0; }
+.switch input:focus-visible + .switch-track { outline: none; box-shadow: 0 0 0 3px var(--brass-soft); }
+.switch-text { color: var(--muted); font-size: 0.92rem; transition: color 0.2s ease; }
+.switch:hover .switch-text { color: var(--ink); }
+
+/* --- Card corner controls (play / image) ----------------------------------*/
+.card-btn {
+  width: 38px; height: 38px; padding: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--fill-1);
+  color: var(--brass);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
+}
+.card-btn:hover { background: var(--brass-soft); border-color: var(--brass); }
+.card-btn:active { transform: scale(0.94); }
+.card-btn:focus-visible { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px var(--brass-soft); }
+.card-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.card-btn:disabled:hover { background: var(--fill-1); border-color: var(--line); }
+.card-btn svg { width: 18px; height: 18px; display: block; }
+
+.card-play { position: absolute; top: 14px; left: 14px; z-index: 6; }
+.card-img { position: absolute; top: 14px; right: 14px; z-index: 6; }
+
+/* "Now playing" + "copied/saved" states fill solid brass with a dark glyph. */
+.card-play.is-playing, .card-btn.is-done {
+  background: var(--btn-bg); color: var(--btn-fg); border-color: transparent;
+}
+.play-bars rect { transform-origin: center; animation: play-bar-pulse 0.9s ease-in-out infinite; }
+.play-bars rect:nth-child(1) { animation-delay: 0s; }
+.play-bars rect:nth-child(2) { animation-delay: 0.15s; }
+.play-bars rect:nth-child(3) { animation-delay: 0.3s; }
+@keyframes play-bar-pulse { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
+
 .img-menu {
-  position: absolute; top: calc(100% + 4px); right: 0; z-index: 10;
-  background: #fff; border: 1.5px solid var(--reed-border); border-radius: 10px;
-  padding: 4px; min-width: 100%; white-space: nowrap;
-  box-shadow: 0 6px 20px rgba(36, 48, 58, 0.16);
+  top: calc(100% + 8px); right: 0;
+  min-width: 172px; white-space: nowrap;
   display: flex; flex-direction: column; gap: 2px;
 }
-.img-menu[hidden] { display: none; } /* class display:flex would otherwise beat [hidden] */
 .img-opt {
   background: none; border: none; cursor: pointer; font: inherit;
-  text-align: left; padding: 8px 12px; border-radius: 7px; color: var(--ink);
+  text-align: left; padding: 8px 12px; border-radius: 8px; color: var(--ink);
+  transition: background 0.13s ease, color 0.13s ease;
 }
-.img-opt:hover { background: var(--reed-fill); }
+.img-opt:hover { background: var(--brass-soft); color: var(--brass-lit); }
 
 /* --- Info panel ------------------------------------------------------------*/
 .info {
-  max-width: 860px; margin: 22px auto 0;
-  background: #fff; border: 1.5px solid var(--reed-border);
-  border-radius: 14px; padding: 16px 18px;
+  max-width: 880px; margin: 24px auto 0;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px; padding: 18px 20px;
+  box-shadow: var(--panel-shadow);
+  transition: background 0.4s ease, border-color 0.4s ease;
 }
-.info .hint { margin: 0; color: var(--muted); }
-.info .hint.warn { color: #a23b2e; }
+.info .hint { margin: 0; color: var(--muted); line-height: 1.55; }
+.info .hint.warn { color: #e0693f; }
 .info code {
-  background: var(--bg); padding: 1px 6px; border-radius: 5px;
+  background: var(--brass-soft); color: var(--brass-lit);
+  padding: 1px 7px; border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--brass) 30%, transparent);
   font-size: 0.9em;
 }
-.detected { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
-.detected strong { font-size: 1.25rem; }
+.detected { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.detected strong {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: var(--ink);
+}
 .detected span { color: var(--muted); font-size: 0.9rem; }
+.share-link {
+  margin-left: auto;
+  align-self: center;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 14px;
+  font: inherit; font-size: 0.82rem; font-weight: 600;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--fill-1); color: var(--ink); cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.share-link:hover, .share-link.is-done { background: var(--brass-soft); border-color: var(--brass); color: var(--brass-lit); }
+.share-link:focus-visible { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px var(--brass-soft); }
+.share-link svg { width: 15px; height: 15px; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .chip {
   display: inline-flex; align-items: baseline; gap: 5px;
-  padding: 5px 11px; border-radius: 999px;
+  padding: 5px 12px; border-radius: 999px;
   font-weight: 700; border: 1.5px solid;
 }
-.chip em { font-style: normal; font-size: 0.7rem; font-weight: 600; opacity: 0.7; }
-.chip.match { background: var(--match-fill); border-color: var(--match); color: #145c33; }
-.chip.tone { background: var(--tone-fill); border-color: var(--tone); color: #3f7a58; }
-.chip.root { background: var(--root-fill); border-color: var(--root); color: #8a4406; }
-.chip.miss { background: #f0f0f0; border-color: #c7c7c7; color: #8a8a8a; }
+.chip em { font-style: normal; font-size: 0.7rem; font-weight: 600; opacity: 0.72; }
+.chip.match { background: var(--match-fill); border-color: var(--match); color: #12572f; }
+.chip.tone { background: var(--tone-fill); border-color: var(--tone); color: #326349; }
+.chip.root { background: var(--root-fill); border-color: var(--root); color: #834005; }
+.chip.miss { background: var(--fill-1); border-color: var(--line); color: var(--faint); }
 
 .legendline { margin: 0; color: var(--muted); font-size: 0.82rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .sw { width: 13px; height: 13px; border-radius: 4px; display: inline-block; border: 1.5px solid; margin-left: 8px; }
 .sw.root { background: var(--root-fill); border-color: var(--root); }
 .sw.match { background: var(--match-fill); border-color: var(--match); }
 .sw.tone { background: var(--tone-fill); border-color: var(--tone); }
-.sw.miss { background: #f0f0f0; border-color: #c7c7c7; }
+.sw.miss { background: var(--fill-1); border-color: var(--line); }
 
-.foot { max-width: 860px; margin: 24px auto 0; color: var(--muted); font-size: 0.82rem; text-align: center; }
-.foot p { margin: 0; line-height: 1.5; }
-.foot .promo { margin-top: 10px; }
-.foot .promo a { color: #6a3fb3; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
-.foot .promo a:hover { color: #52309a; }
+/* --- Cross-promo card (sibling Chord Charts app) ---------------------------*/
+.cross-promo {
+  display: flex; align-items: center; gap: 16px;
+  max-width: 880px; margin: 16px auto 0; padding: 16px 18px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: var(--panel-shadow);
+  text-decoration: none; color: inherit;
+  transition: border-color 0.18s ease, background 0.4s ease, transform 0.12s ease;
+}
+.cross-promo:hover { border-color: color-mix(in srgb, var(--brass) 45%, var(--panel-border)); transform: translateY(-1px); }
+.cross-promo:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.cross-promo-mark {
+  display: grid; place-items: center; flex: 0 0 auto;
+  width: 52px; height: 52px; border-radius: 14px;
+  color: var(--brass); background: var(--brass-soft);
+  border: 1px solid color-mix(in srgb, var(--brass) 26%, transparent);
+}
+.cross-promo-mark svg { width: 34px; height: 34px; }
+.cross-promo-body { flex: 1 1 auto; min-width: 0; }
+.cross-promo-teaser {
+  display: block; font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto;
+  font-size: 1.15rem; font-weight: 600; line-height: 1.15; color: var(--ink);
+}
+.cross-promo-desc { display: block; margin-top: 5px; font-size: 0.9rem; line-height: 1.45; color: var(--muted); }
+.cross-promo-desc b { color: var(--ink); font-weight: 600; }
+.cross-promo-go {
+  flex: 0 0 auto; display: grid; place-items: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  color: var(--brass); background: var(--brass-soft);
+  border: 1px solid color-mix(in srgb, var(--brass) 26%, transparent);
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.cross-promo-go svg { width: 16px; height: 16px; }
+.cross-promo:hover .cross-promo-go { background: var(--btn-bg); color: var(--btn-fg); border-color: var(--btn-bg); transform: translateX(2px); }
+
+/* --- Footer ----------------------------------------------------------------*/
+.foot {
+  max-width: 880px; margin: 40px auto 0; padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 0.8rem;
+}
+.foot p { margin: 0; line-height: 1.55; }
+.foot-meta {
+  display: flex; justify-content: space-between; flex-wrap: wrap;
+  gap: 4px 24px; margin-top: 8px;
+}
+.foot a { color: var(--brass); font-weight: 600; text-decoration: none; transition: color 0.15s ease; }
+.foot a:hover { color: var(--brass-lit); text-decoration: underline; text-underline-offset: 2px; }
+
+/* --- Entrance: one calm, staggered reveal on first load --------------------*/
+@media (prefers-reduced-motion: no-preference) {
+  .topbar, .controls, .examples, .stage, .toggles, .info, .foot {
+    animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .controls { animation-delay: 0.05s; }
+  .examples { animation-delay: 0.1s; }
+  .stage    { animation-delay: 0.16s; }
+  .toggles  { animation-delay: 0.22s; }
+  .info     { animation-delay: 0.26s; }
+  .foot     { animation-delay: 0.32s; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+/* Respect users who prefer no motion — kill transitions/animations. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 @media (max-width: 560px) {
-  :root { --row-gap: 5px; } /* keeps the side labels aligned with the tighter grid */
+  :root { --row-gap: 5px; }
+  .topbar { margin-bottom: 20px; }
   .box .note { font-size: 1rem; }
   .box.reed .note { font-size: 1.1rem; }
+  .stage { border-radius: 18px; }
+  .theme-toggle { width: 40px; height: 40px; }
 }
