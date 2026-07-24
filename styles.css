@@ -32,9 +32,13 @@
   --btn-fg: #2a1600;
 
   --line: rgba(214, 196, 158, 0.22);
-  --fill-1: rgba(255, 255, 255, 0.045); /* raised fill: inputs, ghost buttons, pills */
+  --fill-1: rgba(255, 255, 255, 0.045); /* raised fill: ghost buttons, pills */
   --fill-2: rgba(255, 255, 255, 0.09);  /* its hover */
   --track-off: rgba(255, 255, 255, 0.16);
+  /* Text field surfaces (query input + harp-key combobox). */
+  --input-bg: rgba(255, 255, 255, 0.045);
+  --input-bg-focus: rgba(255, 255, 255, 0.08);
+  --input-shadow: 0 0 transparent;
 
   --surface: #2a2118;                    /* popover menus */
   --surface-border: rgba(242, 225, 188, 0.16);
@@ -99,6 +103,9 @@
   --line: rgba(74, 56, 26, 0.16);
   --fill-1: rgba(74, 56, 26, 0.05);
   --fill-2: rgba(74, 56, 26, 0.1);
+  --input-bg: #fffaf0;   /* lightest card color, so fields read as bright inputs */
+  --input-bg-focus: #ffffff;
+  --input-shadow: inset 0 1px 2px rgba(74, 56, 26, 0.07);
   --track-off: rgba(74, 56, 26, 0.2);
 
   --surface: #fffaf0;
@@ -256,8 +263,9 @@ body::after {
   height: 48px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--fill-1);
+  background: var(--input-bg);
   color: var(--ink);
+  box-shadow: var(--input-shadow);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 .field input::placeholder { color: var(--faint); }
@@ -265,8 +273,8 @@ body::after {
 .field input:focus {
   outline: none;
   border-color: var(--brass);
-  background: var(--fill-2);
-  box-shadow: 0 0 0 3px var(--brass-soft);
+  background: var(--input-bg-focus);
+  box-shadow: var(--input-shadow), 0 0 0 3px var(--brass-soft);
 }
 
 /* --- Custom combobox (harp key) -------------------------------------------*/
@@ -275,12 +283,13 @@ body::after {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   min-width: 100px; height: 48px; padding: 0 12px 0 14px;
   font: inherit; font-size: 1.05rem; font-weight: 600;
-  color: var(--ink); background: var(--fill-1);
+  color: var(--ink); background: var(--input-bg);
   border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
+  box-shadow: var(--input-shadow);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.cbx-btn:hover { background: var(--fill-2); border-color: color-mix(in srgb, var(--brass) 45%, var(--line)); }
-.cbx-btn:focus-visible { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px var(--brass-soft); }
+.cbx-btn:hover { background: var(--input-bg-focus); border-color: color-mix(in srgb, var(--brass) 45%, var(--line)); }
+.cbx-btn:focus-visible { outline: none; border-color: var(--brass); box-shadow: var(--input-shadow), 0 0 0 3px var(--brass-soft); }
 .cbx-caret { font-size: 0.7rem; color: var(--muted); transition: rotate 0.2s ease, color 0.15s ease; }
 .cbx-btn[aria-expanded="true"] .cbx-caret { rotate: 180deg; color: var(--brass); }
 .cbx-menu {
