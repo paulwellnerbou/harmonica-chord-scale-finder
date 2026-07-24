@@ -194,9 +194,10 @@ function fitHarp() {
   const area = document.querySelector('.harp-area');
   const harp = document.getElementById('harp');
   if (!fit || !area || !harp) return;
-  const cs = getComputedStyle(area);
-  const gutters = parseFloat(cs.paddingLeft) * 2;
-  const natW = (parseFloat(getComputedStyle(harp).minWidth) || 628) + gutters;
+  const px = (v) => parseFloat(v) || 0;
+  const areaCs = getComputedStyle(area);
+  const gutters = px(areaCs.paddingLeft) + px(areaCs.paddingRight); // side-label gutters
+  const natW = (px(getComputedStyle(harp).minWidth) || 628) + gutters;
   const avail = fit.clientWidth;
   if (avail < natW - 0.5) {
     const scale = avail / natW;
@@ -205,8 +206,9 @@ function fitHarp() {
     const h = area.offsetHeight;
     area.style.transformOrigin = 'top left';
     area.style.transform = `scale(${scale})`;
-    // clientWidth excludes padding; height must add the wrapper's vertical padding back.
-    const padY = parseFloat(getComputedStyle(fit).paddingTop) * 2;
+    // clientWidth excludes padding; add the wrapper's vertical padding back to the height.
+    const fitCs = getComputedStyle(fit);
+    const padY = px(fitCs.paddingTop) + px(fitCs.paddingBottom);
     fit.style.height = `${h * scale + padY}px`;
   } else {
     area.style.width = '';
