@@ -123,19 +123,6 @@ function renderHarp() {
   }
 }
 
-function describeParsed(p) {
-  // Prefer the root exactly as typed (keeps F#, not Gb) so this matches the title.
-  const rootName = queryRootText() || PC_NAMES_FLAT[p.root];
-  if (p.kind === 'chord') {
-    return { title: `${rootName}${chordQualitySuffix(p.quality)}`, sub: `${rootName}${p.quality} chord` };
-  }
-  if (p.kind === 'scale') {
-    const label = scaleDisplayName(p.type);
-    return { title: `${rootName} ${label}`, sub: `${rootName} ${label} scale${p.hadRoot ? '' : ' (root defaulted to C)'}` };
-  }
-  return { title: 'Notes', sub: 'note set' };
-}
-
 // Root note exactly as the user spelled it (keeps F# from becoming Gb), or null.
 function queryRootText() {
   const m = state.query.trim().match(/^([A-Ga-g])([#b♯♭]*)/);
@@ -148,7 +135,10 @@ function queryRootText() {
 function selectionName() {
   const p = state.parsed;
   if (!p) return '';
-  const root = queryRootText() || PC_NAMES_FLAT[p.root];
+  // Trust the typed root only when the parse actually consumed one — for a
+  // rootless mode name like "Dorian" the leading "D" is not the root.
+  const typedRoot = p.hadRoot === false ? null : queryRootText();
+  const root = typedRoot || PC_NAMES_FLAT[p.root];
   if (p.kind === 'chord') return `${root}${chordQualitySuffix(p.quality)}`;
   if (p.kind === 'scale') return `${root} ${scaleDisplayName(p.type)} Scale`;
   return 'Notes';
@@ -172,7 +162,8 @@ function renderInfo() {
          or a scale (<code>C Blues</code>, <code>Em Pentatonic</code>, <code>D Dorian</code>) above.</p>`;
     return;
   }
-  const { title, sub } = describeParsed(p);
+  const title = selectionName(); // exact same name as the heading above the harp
+  const sub = p.kind === 'scale' && !p.hadRoot ? '(root defaulted to C)' : '';
 
   // Which target notes are actually reachable on the current harp / settings.
   const harp = buildHarp(state.key);
@@ -198,7 +189,7 @@ function renderInfo() {
     .join('');
 
   info.innerHTML = `
-    <div class="detected"><strong>${title}</strong><span>${sub}</span></div>
+    <div class="detected"><strong>${title}</strong>${sub ? `<span>${sub}</span>` : ''}</div>
     <div class="chips">${chips}</div>
     <p class="legendline"><span class="sw root"></span>root
       <span class="sw match"></span>chord/scale tone

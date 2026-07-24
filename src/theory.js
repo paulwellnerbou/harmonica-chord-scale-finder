@@ -118,15 +118,25 @@ function looksLikeScale(str) {
   return SCALE_KEYWORDS.some((kw) => s.includes(kw));
 }
 
+function makeScale(root, type, hadRoot) {
+  return { kind: 'scale', root, type, hadRoot, pcs: SCALE_TYPES[type].map((iv) => (root + iv) % 12) };
+}
+
 export function parseScale(str) {
-  let trimmed = normalizeAccidentals(str.trim()).replace(/\s+scale\s*$/i, '');
+  const trimmed = normalizeAccidentals(str.trim()).replace(/\s+scale\s*$/i, '');
+
+  // Prefer "<root> <type>" (e.g. "C Blues"). Fall back to the whole string as a
+  // type with a default C root, so mode names whose first letter is itself a
+  // note ("Dorian" → D, "Aeolian" → A) aren't mis-read as the root.
   const head = parseNoteHead(trimmed);
-  const root = head ? head.pc : 0; // default root C when the user omits it (e.g. "Dorian")
-  const rest = (head ? trimmed.slice(head.len) : trimmed).trim().toLowerCase();
-  const type = rest === '' ? 'major' : rest;
-  if (!(type in SCALE_TYPES)) return null;
-  const pcs = SCALE_TYPES[type].map((iv) => (root + iv) % 12);
-  return { kind: 'scale', root, type, hadRoot: !!head, pcs };
+  if (head) {
+    const rest = trimmed.slice(head.len).trim().toLowerCase();
+    const type = rest === '' ? 'major' : rest;
+    if (type in SCALE_TYPES) return makeScale(head.pc, type, true);
+  }
+  const whole = trimmed.toLowerCase();
+  if (whole in SCALE_TYPES) return makeScale(0, whole, false);
+  return null;
 }
 
 // --- Note list ("C E G", "C, Eb, G") ---------------------------------------
