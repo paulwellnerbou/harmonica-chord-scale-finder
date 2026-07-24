@@ -406,6 +406,9 @@ body::after {
   margin-left: -0.03em;
 }
 
+/* Wrapper that clips the harp; JS scales .harp-area down to fit narrow screens
+   (a "zoom to fit" instead of a horizontal scrollbar). */
+.harp-fit { overflow: hidden; }
 .harp-area {
   position: relative;
   padding: 0 30px; /* gutters that hold the side labels */
@@ -820,10 +823,9 @@ body::after {
 }
 
 @media (max-width: 560px) {
-  :root { --row-gap: 5px; }
+  /* The harp keeps its full-size layout and is scaled to fit by fitHarp(), so no
+     per-element shrinking here. */
   .topbar { margin-bottom: 20px; }
-  .box .note { font-size: 1rem; }
-  .box.reed .note { font-size: 1.1rem; }
   .stage { border-radius: 18px; }
   .theme-toggle, .icon-link { width: 40px; height: 40px; }
 }

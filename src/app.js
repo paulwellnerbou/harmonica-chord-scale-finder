@@ -187,6 +187,38 @@ function renderHarp() {
   applyVisibility(grid);
 }
 
+// Scale the harp down to fit narrow viewports instead of overflowing/scrolling.
+// The harp keeps its full-size layout (min-width) and we transform it to fit.
+function fitHarp() {
+  const fit = document.querySelector('.harp-fit');
+  const area = document.querySelector('.harp-area');
+  const harp = document.getElementById('harp');
+  if (!fit || !area || !harp) return;
+  const gutters = parseFloat(getComputedStyle(area).paddingLeft) * 2;
+  const natW = (parseFloat(getComputedStyle(harp).minWidth) || 628) + gutters;
+  const avail = fit.clientWidth;
+  if (avail < natW - 0.5) {
+    const scale = avail / natW;
+    area.style.transform = 'none';
+    area.style.width = `${natW}px`;
+    const h = area.offsetHeight;
+    area.style.transformOrigin = 'top left';
+    area.style.transform = `scale(${scale})`;
+    fit.style.height = `${h * scale}px`;
+  } else {
+    area.style.width = '';
+    area.style.transform = '';
+    area.style.transformOrigin = '';
+    fit.style.height = '';
+  }
+}
+
+let fitRaf = 0;
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(fitRaf);
+  fitRaf = requestAnimationFrame(fitHarp);
+});
+
 // Show/hide bends & overblows purely in CSS so they fade in and out instead of
 // popping. Kept off the render path so it never rebuilds the harp mid-animation.
 function applyVisibility(grid = document.getElementById('harp')) {
@@ -533,3 +565,5 @@ function initImageButton() {
 const initialQuery = applyURLState(); // seed key + toggles from the URL
 initControls();                       // build controls reflecting that state
 setQuery(initialQuery);               // apply the query, render, and sync the URL
+fitHarp();                            // scale the harp to the current width
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHarp);
