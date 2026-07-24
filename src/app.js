@@ -86,6 +86,13 @@ function escapeHtml(s) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// HTML for a title/heading with proper accidentals. The ♭/♯ are wrapped so they
+// can be rendered in the body font — the serif display font (Fraunces) lacks
+// those glyphs and falls back to an oversized, ill-spaced substitute.
+function accidentalsHtml(asciiStr) {
+  return withMusicAccidentals(escapeHtml(asciiStr)).replace(/[♭♯]/g, (g) => `<span class="acc">${g}</span>`);
+}
+
 function classForType(type) {
   if (type === 'blow' || type === 'draw') return 'reed';
   if (type === 'overblow' || type === 'overdraw') return 'over';
@@ -269,7 +276,7 @@ function renderInfo() {
     : `<span class="sw root"></span>root <span class="sw match"></span>chord tone`;
 
   info.innerHTML = `
-    <div class="detected"><strong>${withMusicAccidentals(title)}</strong>${sub ? `<span>${sub}</span>` : ''}
+    <div class="detected"><strong>${accidentalsHtml(title)}</strong>${sub ? `<span>${sub}</span>` : ''}
       <button type="button" class="share-link" title="Copy a shareable link to this selection">${SHARE_LABEL}</button>
     </div>
     <div class="chips">${chips}</div>
@@ -298,9 +305,9 @@ function matchedMidis() {
 function render() {
   renderHarp();
   renderInfo();
-  const title = withMusicAccidentals(titleText());
-  document.getElementById('harp-title').textContent = title;
-  document.title = `${title} — Harmonica Finder`;
+  const titleAscii = titleText();
+  document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
+  document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Finder`;
   document.getElementById('play').disabled = matchedMidis().length === 0;
   syncURL();
 }

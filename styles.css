@@ -385,6 +385,14 @@ body::after {
   font-size: clamp(1.1rem, 2.4vw, 1.4rem);
   letter-spacing: 0.005em;
 }
+/* Accidental glyph inside a serif heading: draw it in the body font (which has a
+   properly-sized ♭/♯) tucked close to its note letter. */
+.acc {
+  font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 600;
+  font-size: 0.82em;
+  margin-left: -0.04em;
+}
 
 .harp-area {
   position: relative;
