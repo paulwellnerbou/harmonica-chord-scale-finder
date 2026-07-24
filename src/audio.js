@@ -12,6 +12,10 @@ function midiToFreq(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
+// Extra time the oscillators keep running past the gain envelope, so the tail
+// doesn't cut off abruptly.
+const STOP_TAIL = 0.05;
+
 export function playNote(midi, duration = 0.7) {
   const c = ac();
   if (c.state === 'suspended') c.resume();
@@ -32,11 +36,17 @@ export function playNote(midi, duration = 0.7) {
     osc.detune.value = detune;
     osc.connect(gain);
     osc.start(now);
-    osc.stop(now + duration + 0.05);
+    osc.stop(now + duration + STOP_TAIL);
   }
 }
 
+const SEQ_GAP = 0.32;      // seconds between successive note onsets
+const SEQ_NOTE_DUR = 0.5;  // seconds each sequenced note rings
+
 // Play a set of MIDI notes in sequence (used for "play scale/chord").
-export function playSequence(midis, gap = 0.32) {
-  midis.forEach((m, i) => setTimeout(() => playNote(m, 0.5), i * gap * 1000));
+// Returns the total time in ms until the last note has finished ringing, so
+// callers can time UI feedback without duplicating these constants.
+export function playSequence(midis, gap = SEQ_GAP) {
+  midis.forEach((m, i) => setTimeout(() => playNote(m, SEQ_NOTE_DUR), i * gap * 1000));
+  return midis.length ? (midis.length - 1) * gap * 1000 + (SEQ_NOTE_DUR + STOP_TAIL) * 1000 : 0;
 }

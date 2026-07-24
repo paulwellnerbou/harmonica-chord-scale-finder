@@ -219,6 +219,18 @@ export function degreeOf(pc, root) {
   return DEGREE_LABEL[(((pc - root) % 12) + 12) % 12];
 }
 
+// Swap ascii accidentals for their proper music-notation glyphs, for DISPLAY
+// only (parsing still accepts plain b/#). A flat is either a note-name accidental
+// (an uppercase note letter + "b", e.g. "Bb") or an alteration before a digit
+// (e.g. "b3", "7b5") — so scale words like "Blues" are left untouched.
+export function withMusicAccidentals(str) {
+  return String(str)
+    .replace(/([A-G])b/g, '$1♭')
+    .replace(/([A-G])#/g, '$1♯')
+    .replace(/b(?=\d)/g, '♭')
+    .replace(/#(?=\d)/g, '♯');
+}
+
 // The tonic triad of a scale — root, third and fifth stacked from the root —
 // as pitch classes, or null if the scale has no clear third or fifth. Prefers
 // the major third and perfect fifth; falls back to what the scale contains

@@ -14,7 +14,8 @@ import { PC_NAMES_FLAT } from './theory.js';
 const C_HARP = {
   1:  { blow: 60, draw: 62, drawBends: [61],          overblow: 63 },
   2:  { blow: 64, draw: 67, drawBends: [66, 65],      overblow: 68 },
-  3:  { blow: 67, draw: 71, drawBends: [70, 69, 68],  overblow: 72 },
+  // Hole 3's overblow is C — already a blow reed elsewhere, so it's omitted as redundant.
+  3:  { blow: 67, draw: 71, drawBends: [70, 69, 68] },
   4:  { blow: 72, draw: 74, drawBends: [73],          overblow: 75 },
   5:  { blow: 76, draw: 77, drawBends: [],            overblow: 78 },
   6:  { blow: 79, draw: 81, drawBends: [80],          overblow: 82 },
