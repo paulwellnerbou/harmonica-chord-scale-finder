@@ -16,9 +16,11 @@ overblows and overdraws. The layout mirrors the
 - Toggle **bends** and **overblows/overdraws** on or off.
 - Click any note to hear it (Web Audio, no samples).
 - **Copy the layout as an image** (`⧉ Copy image`) — rendered natively to a
-  canvas with a **transparent background** (no page backdrop) and the harp key +
-  chord/scale baked in as a title. Falls back to a PNG download where the
-  clipboard image API is unavailable.
+  canvas with a **transparent background** (no page backdrop) and a descriptive
+  title baked in (e.g. "C Blues Scale · Harp in C", "A Minor · Harp in C").
+  Falls back to a PNG download where the clipboard image API is unavailable.
+- **Preview / download image** shows the exact PNG on a checkerboard (so the
+  transparency is visible) with a download link.
 - The current key + chord/scale also shows as the page heading and the browser
   tab title.
 

@@ -1,4 +1,4 @@
-import { parseInput, degreeOf, PC_NAMES_FLAT } from './theory.js';
+import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName } from './theory.js';
 import { buildHarp, KEY_ORDER } from './harmonica.js';
 import { playNote, playSequence } from './audio.js';
 import { renderHarpImage, copyCanvas } from './exporter.js';
@@ -136,11 +136,27 @@ function describeParsed(p) {
   return { title: 'Notes', sub: 'note set' };
 }
 
-// Title shown on the page, in the browser tab and baked into the copied image.
-// Uses the query verbatim (only when recognized) so it reads back what the user
-// asked for — e.g. "C Blues · Harp in C".
+// Root note exactly as the user spelled it (keeps F# from becoming Gb), or null.
+function queryRootText() {
+  const m = state.query.trim().match(/^([A-Ga-g])([#b♯♭]*)/);
+  if (!m) return null;
+  return m[1].toUpperCase() + m[2].replace(/♯/g, '#').replace(/♭/g, 'b');
+}
+
+// Descriptive name of the current selection: "C Major", "A Minor",
+// "C Blues Scale", "E Minor Pentatonic Scale", "F#9" — or '' if none.
+function selectionName() {
+  const p = state.parsed;
+  if (!p) return '';
+  const root = queryRootText() || PC_NAMES_FLAT[p.root];
+  if (p.kind === 'chord') return `${root}${chordQualitySuffix(p.quality)}`;
+  if (p.kind === 'scale') return `${root} ${scaleDisplayName(p.type)} Scale`;
+  return 'Notes';
+}
+
+// Title shown on the page, the browser tab and baked into the copied image.
 function titleText() {
-  const what = state.parsed ? state.query.trim().replace(/\s+/g, ' ') : '';
+  const what = selectionName();
   return what ? `${what} · Harp in ${state.key}` : `Harp in ${state.key}`;
 }
 
@@ -254,20 +270,46 @@ function initControls() {
 
   const copyBtn = document.getElementById('copy');
   copyBtn.addEventListener('click', async () => {
-    const canvas = renderHarpImage({
-      key: state.key,
-      parsed: state.parsed,
-      showBends: state.showBends,
-      showOver: state.showOver,
-      title: titleText(),
-    });
-    const slug = titleText().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');
-    const result = await copyCanvas(canvas, `harmonica-${slug}.png`);
+    const { canvas, filename } = buildImage();
+    const result = await copyCanvas(canvas, filename);
+    showPreview(canvas, filename);
     const original = copyBtn.textContent;
     copyBtn.textContent = result === 'copied' ? '✓ Copied!' : '⤓ Downloaded';
     copyBtn.disabled = true;
     setTimeout(() => { copyBtn.textContent = original; copyBtn.disabled = false; }, 1600);
   });
+
+  document.getElementById('preview-btn').addEventListener('click', () => {
+    const { canvas, filename } = buildImage();
+    showPreview(canvas, filename);
+    document.getElementById('preview').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+}
+
+// Build the export canvas plus a filename slug for the current selection.
+function buildImage() {
+  const canvas = renderHarpImage({
+    key: state.key,
+    parsed: state.parsed,
+    showBends: state.showBends,
+    showOver: state.showOver,
+    title: titleText(),
+  });
+  const slug = titleText().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');
+  return { canvas, filename: `harmonica-${slug}.png` };
+}
+
+// Show the generated image inline (on a checkerboard so transparency is
+// obvious) with a download link.
+function showPreview(canvas, filename) {
+  const url = canvas.toDataURL('image/png');
+  const wrap = document.getElementById('preview');
+  wrap.hidden = false;
+  wrap.innerHTML = `
+    <button class="preview-close" id="preview-close" title="Hide preview" aria-label="Hide preview">✕</button>
+    <div class="preview-canvas"><img src="${url}" alt="Harmonica layout" /></div>
+    <a class="btn btn-secondary" href="${url}" download="${filename}">⤓ Download PNG</a>`;
+  wrap.querySelector('#preview-close').addEventListener('click', () => { wrap.hidden = true; });
 }
 
 initControls();

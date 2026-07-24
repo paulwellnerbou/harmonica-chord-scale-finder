@@ -237,6 +237,37 @@ body {
   font-size: 0.92rem; color: var(--muted);
 }
 .toggles label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.linkbtn {
+  background: none; border: none; color: #6a3fb3; cursor: pointer;
+  font: inherit; font-size: 0.92rem; font-weight: 600; text-decoration: underline;
+  text-underline-offset: 2px; padding: 0;
+}
+.linkbtn:hover { color: #52309a; }
+
+/* --- Image preview ---------------------------------------------------------*/
+.preview {
+  max-width: 860px; margin: 18px auto 0; padding: 16px;
+  background: #fff; border: 1.5px solid var(--reed-border); border-radius: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  position: relative;
+}
+.preview-close {
+  position: absolute; top: 8px; right: 10px;
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; color: var(--muted); line-height: 1;
+}
+.preview-close:hover { color: var(--ink); }
+/* Checkerboard makes the transparent PNG background obvious. */
+.preview-canvas {
+  width: 100%; overflow-x: auto; border-radius: 10px;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%),
+    linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+.preview-canvas img { display: block; width: 100%; height: auto; }
 
 /* --- Info panel ------------------------------------------------------------*/
 .info {

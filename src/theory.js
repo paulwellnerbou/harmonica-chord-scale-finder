@@ -160,6 +160,33 @@ export function parseInput(str) {
   return parseScale(str) || null;
 }
 
+// Spelled-out chord-quality suffix for titles. Triads become words (" Major",
+// " Minor", …); everything else keeps its compact symbol ("7", "maj7", "9").
+const CHORD_SUFFIX = {
+  '': ' Major', 'maj': ' Major', 'M': ' Major', 'major': ' Major',
+  'm': ' Minor', 'min': ' Minor', '-': ' Minor', 'minor': ' Minor',
+  'dim': ' Diminished', 'o': ' Diminished', '°': ' Diminished',
+  'aug': ' Augmented', '+': ' Augmented',
+};
+export function chordQualitySuffix(quality) {
+  return quality in CHORD_SUFFIX ? CHORD_SUFFIX[quality] : quality;
+}
+
+// Nicely capitalized display name for a scale type (aliases collapse to one).
+const SCALE_LABELS = {
+  natural: 'Natural Minor', 'natural minor': 'Natural Minor', m: 'Minor',
+  aeolian: 'Aeolian', ionian: 'Ionian', major: 'Major', minor: 'Minor',
+  'harmonic minor': 'Harmonic Minor', 'melodic minor': 'Melodic Minor', 'harmonic major': 'Harmonic Major',
+  'major pentatonic': 'Major Pentatonic', 'pentatonic major': 'Major Pentatonic', 'maj pentatonic': 'Major Pentatonic',
+  'minor pentatonic': 'Minor Pentatonic', 'pentatonic minor': 'Minor Pentatonic',
+  pentatonic: 'Minor Pentatonic', 'm pentatonic': 'Minor Pentatonic', 'min pentatonic': 'Minor Pentatonic',
+  blues: 'Blues', 'minor blues': 'Blues', 'm blues': 'Blues', 'major blues': 'Major Blues',
+  'phrygian dominant': 'Phrygian Dominant', 'whole tone': 'Whole Tone', wholetone: 'Whole Tone',
+};
+export function scaleDisplayName(type) {
+  return SCALE_LABELS[type] || type.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 // Human-readable interval label for a pitch class relative to a root.
 const DEGREE_LABEL = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
 export function degreeOf(pc, root) {

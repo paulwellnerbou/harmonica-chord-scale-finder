@@ -67,7 +67,8 @@ export function renderHarpImage({ key, parsed, showBends, showOver, title }) {
   ctx.scale(dpr, dpr);
   // No background fill — the PNG stays transparent.
 
-  const colX = (h) => PAD + GUTTER + (h - 1) * (COL_W + GAP_X);
+  const gridLeft = PAD + GUTTER; // left edge of hole 1 (past the label gutter)
+  const colX = (h) => gridLeft + (h - 1) * (COL_W + GAP_X);
 
   // Purple panel behind blow / number bar / draw.
   const panelY = rowTop[3] - 4;
@@ -75,7 +76,7 @@ export function renderHarpImage({ key, parsed, showBends, showOver, title }) {
   ctx.fillStyle = COLORS.panel;
   ctx.strokeStyle = COLORS.reed[1];
   ctx.lineWidth = 1.5;
-  roundRect(ctx, PAD - 4, panelY, gridW + 8, panelH, 16);
+  roundRect(ctx, gridLeft - 4, panelY, gridW + 8, panelH, 16);
   ctx.fill();
   ctx.stroke();
 
@@ -83,7 +84,7 @@ export function renderHarpImage({ key, parsed, showBends, showOver, title }) {
   const barH = 30;
   const barY = rowTop[4] + (ROW_H[4] - barH) / 2;
   ctx.fillStyle = COLORS.bar;
-  roundRect(ctx, PAD - 6, barY, gridW + 12, barH, 7);
+  roundRect(ctx, gridLeft - 6, barY, gridW + 12, barH, 7);
   ctx.fill();
 
   const drawBox = (n, x) => {
