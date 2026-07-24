@@ -19,8 +19,10 @@ const COLORS = {
   match: ['#c9f0d7', '#1f9d55'],
   tone: ['#e2f5ea', '#7fc79b'],
   root: ['#ffe3c1', '#ec7a12'],
-  panel: '#ebe1cf',
-  bar: '#1c1610',
+  // Cover plate + comb, mirroring --plate-hi/-lo/-edge and --comb-hi/-lo.
+  plate: ['#f4ecdd', '#e2d8c4'],
+  plateEdge: '#c9ba9d',
+  comb: ['#2c2720', '#16110c'],
   ink: '#221b12',
 };
 const TAG = { overblow: 'OB', overdraw: 'OD' };
@@ -73,20 +75,27 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   const gridLeft = PAD + GUTTER; // left edge of hole 1 (past the label gutter)
   const colX = (h) => gridLeft + (h - 1) * (COL_W + GAP_X);
 
-  // Purple panel behind blow / number bar / draw.
+  const vGradient = (top, bottom, [hi, lo]) => {
+    const g = ctx.createLinearGradient(0, top, 0, bottom);
+    g.addColorStop(0, hi);
+    g.addColorStop(1, lo);
+    return g;
+  };
+
+  // Brushed cover plate behind blow / number bar / draw.
   const panelY = rowTop[3] - 4;
   const panelH = rowTop[5] + ROW_H[5] + 4 - panelY;
-  ctx.fillStyle = COLORS.panel;
-  ctx.strokeStyle = COLORS.reed[1];
+  ctx.fillStyle = vGradient(panelY, panelY + panelH, COLORS.plate);
+  ctx.strokeStyle = COLORS.plateEdge;
   ctx.lineWidth = 1.5;
   roundRect(ctx, gridLeft - 4, panelY, gridW + 8, panelH, 16);
   ctx.fill();
   ctx.stroke();
 
-  // Dark number bar (slight overhang, like the page).
+  // Dark comb (number bar) with a slight overhang, like the page.
   const barH = 30;
   const barY = rowTop[4] + (ROW_H[4] - barH) / 2;
-  ctx.fillStyle = COLORS.bar;
+  ctx.fillStyle = vGradient(barY, barY + barH, COLORS.comb);
   roundRect(ctx, gridLeft - 6, barY, gridW + 12, barH, 7);
   ctx.fill();
 

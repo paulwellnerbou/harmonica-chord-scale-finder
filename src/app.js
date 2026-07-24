@@ -274,7 +274,7 @@ function renderInfo() {
     </div>
     <div class="chips">${chips}</div>
     <p class="legendline">${toneKey}
-      <span class="sw miss"></span>unreachable (✕) · ° = needs overblow</p>`;
+      <span class="sw miss"></span>unreachable (✕) · ° = needs overblow / overdraw</p>`;
 }
 
 // Unique, ascending MIDI notes on the current harp that match the query and are
@@ -365,12 +365,10 @@ function playMatched() {
   const btn = document.getElementById('play');
   const midis = matchedMidis();
   if (!midis.length) return;
-  const gapMs = 320; // matches playSequence's default gap
-  playSequence(midis);
+  const dur = playSequence(midis); // ms until the last note stops ringing
   clearTimeout(playTimer);
   btn.classList.add('is-playing');
   btn.innerHTML = PLAYING_ICON;
-  const dur = (midis.length - 1) * gapMs + 600; // last note's tail
   playTimer = setTimeout(() => {
     btn.classList.remove('is-playing');
     btn.innerHTML = PLAY_ICON;
