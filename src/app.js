@@ -1,7 +1,7 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName } from './theory.js';
 import { buildHarp, KEY_ORDER } from './harmonica.js';
 import { playNote, playSequence } from './audio.js';
-import { renderHarpImage, copyCanvas } from './exporter.js';
+import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
 const state = {
   key: 'C',
@@ -268,22 +268,7 @@ function initControls() {
     if (midis.length) playSequence(midis);
   });
 
-  const copyBtn = document.getElementById('copy');
-  copyBtn.addEventListener('click', async () => {
-    const { canvas, filename } = buildImage();
-    const result = await copyCanvas(canvas, filename);
-    showPreview(canvas, filename);
-    const original = copyBtn.textContent;
-    copyBtn.textContent = result === 'copied' ? '✓ Copied!' : '⤓ Downloaded';
-    copyBtn.disabled = true;
-    setTimeout(() => { copyBtn.textContent = original; copyBtn.disabled = false; }, 1600);
-  });
-
-  document.getElementById('preview-btn').addEventListener('click', () => {
-    const { canvas, filename } = buildImage();
-    showPreview(canvas, filename);
-    document.getElementById('preview').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  });
+  initImageButton();
 }
 
 // Build the export canvas plus a filename slug for the current selection.
@@ -299,17 +284,48 @@ function buildImage() {
   return { canvas, filename: `harmonica-${slug}.png` };
 }
 
-// Show the generated image inline (on a checkerboard so transparency is
-// obvious) with a download link.
-function showPreview(canvas, filename) {
-  const url = canvas.toDataURL('image/png');
-  const wrap = document.getElementById('preview');
-  wrap.hidden = false;
-  wrap.innerHTML = `
-    <button class="preview-close" id="preview-close" title="Hide preview" aria-label="Hide preview">✕</button>
-    <div class="preview-canvas"><img src="${url}" alt="Harmonica layout" /></div>
-    <a class="btn btn-secondary" href="${url}" download="${filename}">⤓ Download PNG</a>`;
-  wrap.querySelector('#preview-close').addEventListener('click', () => { wrap.hidden = true; });
+// Split button: main action does the current mode; the caret picks copy vs
+// download (and remembers the choice as the new default).
+function initImageButton() {
+  let mode = 'copy';
+  const action = document.getElementById('img-action');
+  const caret = document.getElementById('img-caret');
+  const menu = document.getElementById('img-menu');
+  const label = (m) => (m === 'download' ? '⤓ Download image' : '⧉ Copy image');
+
+  const closeMenu = () => { menu.hidden = true; caret.setAttribute('aria-expanded', 'false'); };
+
+  const run = async () => {
+    const { canvas, filename } = buildImage();
+    let msg;
+    if (mode === 'download') { downloadCanvas(canvas, filename); msg = '✓ Downloaded'; }
+    else { msg = (await copyCanvas(canvas, filename)) === 'copied' ? '✓ Copied!' : '⤓ Downloaded'; }
+    action.disabled = true;
+    action.textContent = msg;
+    setTimeout(() => { action.textContent = label(mode); action.disabled = false; }, 1600);
+  };
+
+  action.addEventListener('click', run);
+  caret.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = menu.hidden;
+    menu.hidden = !open;
+    caret.setAttribute('aria-expanded', String(open));
+  });
+  menu.querySelectorAll('.img-opt').forEach((opt) => {
+    opt.addEventListener('click', () => {
+      mode = opt.dataset.mode;
+      action.textContent = label(mode);
+      action.title = mode === 'download'
+        ? 'Download the harp layout as a PNG (transparent background)'
+        : 'Copy the harp layout as an image (transparent background)';
+      closeMenu();
+      run();
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu.hidden && !e.target.closest('.split-btn')) closeMenu();
+  });
 }
 
 initControls();

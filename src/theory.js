@@ -160,13 +160,29 @@ export function parseInput(str) {
   return parseScale(str) || null;
 }
 
-// Spelled-out chord-quality suffix for titles. Triads become words (" Major",
-// " Minor", …); everything else keeps its compact symbol ("7", "maj7", "9").
+// Spelled-out chord-quality suffix for titles, so "Am7" reads "A Minor 7" like
+// "Am" reads "A Minor". Complex altered dominants keep their compact symbol.
 const CHORD_SUFFIX = {
   '': ' Major', 'maj': ' Major', 'M': ' Major', 'major': ' Major',
   'm': ' Minor', 'min': ' Minor', '-': ' Minor', 'minor': ' Minor',
   'dim': ' Diminished', 'o': ' Diminished', '°': ' Diminished',
   'aug': ' Augmented', '+': ' Augmented',
+  '6': ' Major 6', 'M6': ' Major 6', 'maj6': ' Major 6',
+  'm6': ' Minor 6', 'min6': ' Minor 6', '-6': ' Minor 6',
+  '69': ' 6/9', '6/9': ' 6/9',
+  '7': ' Dominant 7', 'dom7': ' Dominant 7',
+  'maj7': ' Major 7', 'M7': ' Major 7', 'Δ': ' Major 7', 'Δ7': ' Major 7', 'major7': ' Major 7',
+  'm7': ' Minor 7', 'min7': ' Minor 7', '-7': ' Minor 7',
+  'mmaj7': ' Minor/Major 7', 'mM7': ' Minor/Major 7', 'minmaj7': ' Minor/Major 7', '-Δ7': ' Minor/Major 7',
+  'm7b5': ' Half-Diminished 7', 'ø': ' Half-Diminished 7', 'ø7': ' Half-Diminished 7', 'halfdim': ' Half-Diminished 7',
+  'dim7': ' Diminished 7', 'o7': ' Diminished 7', '°7': ' Diminished 7',
+  '9': ' Dominant 9', 'maj9': ' Major 9', 'M9': ' Major 9',
+  'm9': ' Minor 9', 'min9': ' Minor 9', '-9': ' Minor 9',
+  '11': ' Dominant 11', 'm11': ' Minor 11', 'min11': ' Minor 11',
+  '13': ' Dominant 13', 'maj13': ' Major 13', 'M13': ' Major 13', 'm13': ' Minor 13', 'min13': ' Minor 13',
+  'sus2': ' Suspended 2', 'sus4': ' Suspended 4', 'sus': ' Suspended 4',
+  '7sus4': ' Dominant 7 Suspended 4', '7sus': ' Dominant 7 Suspended 4', '9sus4': ' Dominant 9 Suspended 4',
+  'add9': ' Add 9', 'add2': ' Add 9', 'madd9': ' Minor Add 9', 'madd2': ' Minor Add 9',
 };
 export function chordQualitySuffix(quality) {
   return quality in CHORD_SUFFIX ? CHORD_SUFFIX[quality] : quality;

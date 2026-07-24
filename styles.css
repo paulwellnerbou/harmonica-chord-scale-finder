@@ -22,8 +22,10 @@
   --root-fill: #ffe0bf;
 
   --radius: 12px;
-  --box-h: 46px;
-  --reed-h: 62px;
+  --box-h: 46px;   /* bend / overblow row height */
+  --reed-h: 62px;  /* blow / draw row height */
+  --num-h: 34px;   /* number-bar row height */
+  --row-gap: 8px;  /* gap between harp rows */
   font-synthesis-weight: none;
 }
 
@@ -126,11 +128,12 @@ body {
 }
 .side-label.right { left: auto; right: 0; }
 .side-label:not(.right) { left: 0; }
-/* Blow labels flank the top (blow) half, reading upward; draw the bottom half, downward. */
-.side-blow { top: 4px; height: 44%; writing-mode: vertical-rl; transform: rotate(180deg);
-  display: flex; align-items: center; justify-content: center; }
-.side-draw { bottom: 4px; height: 44%; writing-mode: vertical-rl;
-  display: flex; align-items: center; justify-content: center; }
+/* Aligned with the blow / draw reed rows (blow reads upward, draw downward). */
+.side-label { display: flex; align-items: center; justify-content: center; height: var(--reed-h); }
+.side-blow { top: calc(2 * var(--box-h) + 2 * var(--row-gap));
+  writing-mode: vertical-rl; transform: rotate(180deg); }
+.side-draw { top: calc(2 * var(--box-h) + var(--reed-h) + var(--num-h) + 4 * var(--row-gap));
+  writing-mode: vertical-rl; }
 
 .harp {
   display: grid;
@@ -139,12 +142,12 @@ body {
     var(--box-h)  /* 1 deepest blow bend */
     var(--box-h)  /* 2 blow bend / overblow */
     var(--reed-h) /* 3 blow */
-    34px          /* 4 number bar */
+    var(--num-h)  /* 4 number bar */
     var(--reed-h) /* 5 draw */
     var(--box-h)  /* 6 draw bend / overdraw */
     var(--box-h)  /* 7 draw bend */
     var(--box-h); /* 8 draw bend */
-  gap: 8px 8px;
+  gap: var(--row-gap) 8px;
   min-width: 628px;
   position: relative;
   overflow-x: auto;
@@ -237,37 +240,27 @@ body {
   font-size: 0.92rem; color: var(--muted);
 }
 .toggles label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-.linkbtn {
-  background: none; border: none; color: #6a3fb3; cursor: pointer;
-  font: inherit; font-size: 0.92rem; font-weight: 600; text-decoration: underline;
-  text-underline-offset: 2px; padding: 0;
+/* --- Split image button (copy / download) ---------------------------------*/
+.split-btn { position: relative; display: inline-flex; }
+.split-btn #img-action { border-radius: 10px 0 0 10px; }
+.split-btn .caret {
+  border-radius: 0 10px 10px 0;
+  border-left: 1px solid var(--reed-border);
+  padding: 0 10px; min-width: 0; font-size: 0.75rem;
 }
-.linkbtn:hover { color: #52309a; }
-
-/* --- Image preview ---------------------------------------------------------*/
-.preview {
-  max-width: 860px; margin: 18px auto 0; padding: 16px;
-  background: #fff; border: 1.5px solid var(--reed-border); border-radius: 14px;
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  position: relative;
+.img-menu {
+  position: absolute; top: calc(100% + 4px); right: 0; z-index: 10;
+  background: #fff; border: 1.5px solid var(--reed-border); border-radius: 10px;
+  padding: 4px; min-width: 100%; white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(36, 48, 58, 0.16);
+  display: flex; flex-direction: column; gap: 2px;
 }
-.preview-close {
-  position: absolute; top: 8px; right: 10px;
-  background: none; border: none; cursor: pointer;
-  font-size: 1rem; color: var(--muted); line-height: 1;
+.img-menu[hidden] { display: none; } /* class display:flex would otherwise beat [hidden] */
+.img-opt {
+  background: none; border: none; cursor: pointer; font: inherit;
+  text-align: left; padding: 8px 12px; border-radius: 7px; color: var(--ink);
 }
-.preview-close:hover { color: var(--ink); }
-/* Checkerboard makes the transparent PNG background obvious. */
-.preview-canvas {
-  width: 100%; overflow-x: auto; border-radius: 10px;
-  background-color: #fff;
-  background-image:
-    linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%),
-    linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 10px 10px;
-}
-.preview-canvas img { display: block; width: 100%; height: auto; }
+.img-opt:hover { background: var(--reed-fill); }
 
 /* --- Info panel ------------------------------------------------------------*/
 .info {
@@ -306,7 +299,7 @@ body {
 .foot p { margin: 0; line-height: 1.5; }
 
 @media (max-width: 560px) {
-  .harp { gap: 5px; }
+  :root { --row-gap: 5px; } /* keeps the side labels aligned with the tighter grid */
   .box .note { font-size: 1rem; }
   .box.reed .note { font-size: 1.1rem; }
 }

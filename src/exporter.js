@@ -154,9 +154,10 @@ export function renderHarpImage({ key, parsed, showBends, showOver, title }) {
     ctx.fillText(String(h), cx, barY + barH / 2 + 0.5);
   }
 
-  // Vertical BLOW / DRAW labels flanking both sides (blow reads up, draw down).
-  const blowY = (rowTop[1] + rowTop[3] + ROW_H[3]) / 2;
-  const drawY = (rowTop[5] + rowTop[8] + ROW_H[8]) / 2;
+  // Vertical BLOW / DRAW labels flanking both sides, centered on the blow / draw
+  // reed rows (blow reads up, draw down).
+  const blowY = rowTop[3] + ROW_H[3] / 2;
+  const drawY = rowTop[5] + ROW_H[5] / 2;
   ctx.fillStyle = '#5c6b78';
   ctx.font = `800 13px ${FONT}`;
   ctx.textAlign = 'center';
@@ -183,6 +184,13 @@ export function renderHarpImage({ key, parsed, showBends, showOver, title }) {
   return canvas;
 }
 
+export function downloadCanvas(canvas, filename) {
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = filename;
+  a.click();
+}
+
 // Copy the canvas to the clipboard as PNG; fall back to a download if the
 // clipboard image API is unavailable or blocked. Returns 'copied'|'downloaded'.
 export async function copyCanvas(canvas, filename) {
@@ -196,9 +204,6 @@ export async function copyCanvas(canvas, filename) {
       return 'copied';
     } catch { /* fall through to download */ }
   }
-  const a = document.createElement('a');
-  a.href = canvas.toDataURL('image/png');
-  a.download = filename;
-  a.click();
+  downloadCanvas(canvas, filename);
   return 'downloaded';
 }

@@ -23,7 +23,14 @@
       <select id="key"></select>
     </div>
     <button id="play" class="btn" title="Play the highlighted notes">▶ Play</button>
-    <button id="copy" class="btn btn-secondary" title="Copy the harp layout as an image (transparent background)">⧉ Copy image</button>
+    <div class="split-btn">
+      <button id="img-action" class="btn btn-secondary" title="Copy the harp layout as an image (transparent background)">⧉ Copy image</button>
+      <button id="img-caret" class="btn btn-secondary caret" aria-haspopup="true" aria-expanded="false" title="Choose copy or download">▾</button>
+      <div id="img-menu" class="img-menu" hidden>
+        <button class="img-opt" data-mode="copy">⧉ Copy image</button>
+        <button class="img-opt" data-mode="download">⤓ Download image</button>
+      </div>
+    </div>
   </section>
 
   <section class="examples">
@@ -53,10 +60,7 @@
   <section class="toggles">
     <label><input type="checkbox" id="toggle-bends" checked /> Show bends</label>
     <label><input type="checkbox" id="toggle-over" checked /> Show overblows / overdraws</label>
-    <button id="preview-btn" class="linkbtn" title="Preview the image and download it as PNG">⤓ Preview / download image</button>
   </section>
-
-  <figure id="preview" class="preview" hidden></figure>
 
   <section id="info" class="info"></section>
 

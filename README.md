@@ -15,12 +15,11 @@ overblows and overdraws. The layout mirrors the
 - Switch the **harp key** (G through F#); the whole chart transposes.
 - Toggle **bends** and **overblows/overdraws** on or off.
 - Click any note to hear it (Web Audio, no samples).
-- **Copy the layout as an image** (`⧉ Copy image`) — rendered natively to a
-  canvas with a **transparent background** (no page backdrop) and a descriptive
-  title baked in (e.g. "C Blues Scale · Harp in C", "A Minor · Harp in C").
-  Falls back to a PNG download where the clipboard image API is unavailable.
-- **Preview / download image** shows the exact PNG on a checkerboard (so the
-  transparency is visible) with a download link.
+- **Copy or download the layout as an image** — a split button (`⧉ Copy image`
+  with a ▾ menu to switch to `⤓ Download image`). Rendered natively to a canvas
+  with a **transparent background** (no page backdrop) and a descriptive title
+  baked in (e.g. "C Blues Scale · Harp in C", "A Minor 7 · Harp in C"). Copy
+  falls back to a download where the clipboard image API is unavailable.
 - The current key + chord/scale also shows as the page heading and the browser
   tab title.
 
