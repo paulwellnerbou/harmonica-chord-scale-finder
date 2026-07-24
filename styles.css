@@ -297,6 +297,9 @@ body {
 
 .foot { max-width: 860px; margin: 24px auto 0; color: var(--muted); font-size: 0.82rem; text-align: center; }
 .foot p { margin: 0; line-height: 1.5; }
+.foot .promo { margin-top: 10px; }
+.foot .promo a { color: #6a3fb3; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.foot .promo a:hover { color: #52309a; }
 
 @media (max-width: 560px) {
   :root { --row-gap: 5px; } /* keeps the side labels aligned with the tighter grid */
