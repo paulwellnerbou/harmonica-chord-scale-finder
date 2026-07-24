@@ -96,7 +96,7 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   const barH = 30;
   const barY = rowTop[4] + (ROW_H[4] - barH) / 2;
   ctx.fillStyle = vGradient(barY, barY + barH, COLORS.comb);
-  roundRect(ctx, gridLeft - 6, barY, gridW + 12, barH, 7);
+  roundRect(ctx, gridLeft - 6, barY, gridW + 12, barH, 8); // matches .number-bar border-radius
   ctx.fill();
 
   const drawBox = (n, x) => {

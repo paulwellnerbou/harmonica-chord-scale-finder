@@ -401,7 +401,6 @@ function initTheme() {
 // popup). Focus stays on the button; the active option is tracked with
 // aria-activedescendant.
 function initKeySelect() {
-  const cbx = document.getElementById('key-cbx');
   const btn = document.getElementById('key-btn');
   const menu = document.getElementById('key-menu');
   const valEl = document.getElementById('key-val');
