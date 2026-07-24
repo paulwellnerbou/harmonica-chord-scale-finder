@@ -1,4 +1,4 @@
-import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName } from './theory.js';
+import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor } from './theory.js';
 import { buildHarp, KEY_ORDER } from './harmonica.js';
 import { playNote, playSequence } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
@@ -7,6 +7,7 @@ const state = {
   key: 'C',
   query: '',
   parsed: null,
+  triad: null, // tonic-triad pitch classes when a scale is selected, else null
   showBends: true,
   showOver: true,
 };
@@ -58,15 +59,14 @@ function makeBox(note) {
 
   // Highlight against the active chord/scale.
   const p = state.parsed;
-  if (p) {
-    if (p.pcs.includes(note.pc)) {
-      el.classList.add(note.pc === p.root ? 'root' : 'match');
+  const cls = highlightFor(note.pc, p, state.triad);
+  if (cls) {
+    el.classList.add(cls);
+    if (cls !== 'dim') {
       const deg = document.createElement('span');
       deg.className = 'deg';
       deg.textContent = degreeOf(note.pc, p.root);
       el.appendChild(deg);
-    } else {
-      el.classList.add('dim');
     }
   }
 
@@ -182,17 +182,22 @@ function renderInfo() {
     .map((pc) => {
       const reach = reachable.has(pc) || (state.showOver && needsOver.has(pc));
       const onlyOver = !reachable.has(pc) && needsOver.has(pc);
-      const cls = pc === p.root ? 'chip root' : reach ? 'chip match' : 'chip miss';
+      const bucket = highlightFor(pc, p, state.triad); // 'root' | 'match' | 'tone'
+      const cls = !reach ? 'chip miss' : `chip ${bucket}`;
       const flag = !reach ? ' ✕' : onlyOver ? ' °' : '';
       return `<span class="${cls}">${PC_NAMES_FLAT[pc]}<em>${degreeOf(pc, p.root)}</em>${flag}</span>`;
     })
     .join('');
 
+  const toneKey = state.triad
+    ? `<span class="sw root"></span>root <span class="sw match"></span>triad (3rd &amp; 5th)
+       <span class="sw tone"></span>other scale tone`
+    : `<span class="sw root"></span>root <span class="sw match"></span>chord tone`;
+
   info.innerHTML = `
     <div class="detected"><strong>${title}</strong>${sub ? `<span>${sub}</span>` : ''}</div>
     <div class="chips">${chips}</div>
-    <p class="legendline"><span class="sw root"></span>root
-      <span class="sw match"></span>chord/scale tone
+    <p class="legendline">${toneKey}
       <span class="sw miss"></span>unreachable (✕) · ° = needs overblow</p>`;
 }
 
@@ -224,6 +229,9 @@ function render() {
 function setQuery(str) {
   state.query = str;
   state.parsed = parseInput(str);
+  state.triad = state.parsed && state.parsed.kind === 'scale'
+    ? tonicTriadPcs(state.parsed.pcs, state.parsed.root)
+    : null;
   const input = document.getElementById('query');
   if (input.value !== str) input.value = str;
   render();
@@ -267,6 +275,7 @@ function buildImage() {
   const canvas = renderHarpImage({
     key: state.key,
     parsed: state.parsed,
+    triad: state.triad,
     showBends: state.showBends,
     showOver: state.showOver,
     title: titleText(),

@@ -218,3 +218,26 @@ const DEGREE_LABEL = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7'
 export function degreeOf(pc, root) {
   return DEGREE_LABEL[(((pc - root) % 12) + 12) % 12];
 }
+
+// The tonic triad of a scale — root, third and fifth stacked from the root —
+// as pitch classes, or null if the scale has no clear third or fifth. Prefers
+// the major third and perfect fifth; falls back to what the scale contains
+// (e.g. Locrian → diminished 3+6, Phrygian → minor 3+7).
+export function tonicTriadPcs(pcs, root) {
+  const has = (iv) => pcs.includes((root + iv) % 12);
+  const third = has(4) ? 4 : has(3) ? 3 : null;
+  const fifth = has(7) ? 7 : has(6) ? 6 : has(8) ? 8 : null;
+  if (third === null || fifth === null) return null;
+  return [root, (root + third) % 12, (root + fifth) % 12];
+}
+
+// Highlight bucket for a pitch class against the active selection:
+// 'root' | 'match' (chord tone / scale triad 3rd·5th) | 'tone' (other scale
+// tone) | 'dim' (not in the selection) | null (nothing selected).
+export function highlightFor(pc, parsed, triad) {
+  if (!parsed) return null;
+  if (!parsed.pcs.includes(pc)) return 'dim';
+  if (pc === parsed.root) return 'root';
+  if (triad && !triad.includes(pc)) return 'tone';
+  return 'match';
+}

@@ -13,7 +13,9 @@ overblows and overdraws. The layout mirrors the
   **scale** (`C Blues`, `Em Pentatonic`, `D Dorian`, `A Mixolydian`,
   `F Harmonic Minor`, …). A bare note list (`C E G`) works too.
 - Highlights every hole/technique that plays a target note, with the interval
-  degree (`R`, `b3`, `5`, `b7`, …) and the **root** picked out.
+  degree (`R`, `b3`, `5`, `b7`, …) and the **root** picked out. For a scale, the
+  **tonic-triad notes** (3rd & 5th) are marked more strongly than the remaining
+  passing tones.
 - Switch the **harp key** (G through F#); the whole chart transposes.
 - Toggle **bends** and **overblows/overdraws** on or off.
 - Click any note to hear it (Web Audio, no samples).

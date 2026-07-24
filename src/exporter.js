@@ -2,7 +2,7 @@
 // the clipboard as a PNG. Drawn natively so we control the background — it is
 // left transparent, i.e. without the page's blue backdrop.
 
-import { PC_NAMES_FLAT, degreeOf } from './theory.js';
+import { PC_NAMES_FLAT, degreeOf, highlightFor } from './theory.js';
 import { buildHarp } from './harmonica.js';
 
 const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, TITLE_GAP = 12;
@@ -15,6 +15,7 @@ const COLORS = {
   bend: ['#bfe6f8', '#6cb9de'],
   over: ['#ffe0b8', '#e8a24a'],
   match: ['#c7f0d6', '#1f9d55'],
+  tone: ['#e4f7ec', '#9bd9b5'],
   root: ['#ffe0bf', '#e8730c'],
   panel: '#ede3fa',
   bar: '#34383d',
@@ -48,7 +49,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-export function renderHarpImage({ key, parsed, showBends, showOver, title }) {
+export function renderHarpImage({ key, parsed, triad, showBends, showOver, title }) {
   const harp = buildHarp(key);
 
   const rowTop = [0, 0];
@@ -92,20 +93,17 @@ export function renderHarpImage({ key, parsed, showBends, showOver, title }) {
     const top = rowTop[row];
     const h = ROW_H[row];
 
-    let styleKey = baseStyle(n.type);
-    let dim = false;
-    const hit = parsed && parsed.pcs.includes(n.pc);
-    if (parsed) {
-      if (hit) styleKey = n.pc === parsed.root ? 'root' : 'match';
-      else dim = true;
-    }
+    const bucket = highlightFor(n.pc, parsed, triad); // null|'dim'|'root'|'match'|'tone'
+    const hit = bucket === 'root' || bucket === 'match' || bucket === 'tone';
+    const dim = bucket === 'dim';
+    const styleKey = hit ? bucket : baseStyle(n.type);
     const [fill, stroke] = COLORS[styleKey];
 
     ctx.save();
     if (dim) ctx.globalAlpha = 0.32;
     ctx.fillStyle = fill;
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = styleKey === 'match' || styleKey === 'root' ? 2.5 : 1.5;
+    ctx.lineWidth = bucket === 'match' || bucket === 'root' ? 2.5 : 1.5;
     roundRect(ctx, x, top, COL_W, h, 10);
     ctx.fill();
     ctx.stroke();

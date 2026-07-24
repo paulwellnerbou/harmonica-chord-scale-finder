@@ -18,6 +18,8 @@
 
   --match: #1f9d55;
   --match-fill: #c7f0d6;
+  --tone: #9bd9b5;
+  --tone-fill: #e4f7ec;
   --root: #e8730c;
   --root-fill: #ffe0bf;
 
@@ -225,6 +227,12 @@ body {
   border-color: var(--match);
   box-shadow: 0 0 0 2px var(--match) inset;
 }
+/* Non-triad scale tones: paler, no ring, so the triad (match) stands out. */
+.box.tone {
+  background: var(--tone-fill);
+  border-color: var(--tone);
+}
+.box.tone .note { font-weight: 600; }
 .box.root {
   background: var(--root-fill);
   border-color: var(--root);
@@ -286,6 +294,7 @@ body {
 }
 .chip em { font-style: normal; font-size: 0.7rem; font-weight: 600; opacity: 0.7; }
 .chip.match { background: var(--match-fill); border-color: var(--match); color: #145c33; }
+.chip.tone { background: var(--tone-fill); border-color: var(--tone); color: #3f7a58; }
 .chip.root { background: var(--root-fill); border-color: var(--root); color: #8a4406; }
 .chip.miss { background: #f0f0f0; border-color: #c7c7c7; color: #8a8a8a; }
 
@@ -293,6 +302,7 @@ body {
 .sw { width: 13px; height: 13px; border-radius: 4px; display: inline-block; border: 1.5px solid; margin-left: 8px; }
 .sw.root { background: var(--root-fill); border-color: var(--root); }
 .sw.match { background: var(--match-fill); border-color: var(--match); }
+.sw.tone { background: var(--tone-fill); border-color: var(--tone); }
 .sw.miss { background: #f0f0f0; border-color: #c7c7c7; }
 
 .foot { max-width: 860px; margin: 24px auto 0; color: var(--muted); font-size: 0.82rem; text-align: center; }
