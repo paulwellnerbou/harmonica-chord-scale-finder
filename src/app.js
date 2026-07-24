@@ -124,7 +124,8 @@ function renderHarp() {
 }
 
 function describeParsed(p) {
-  const rootName = PC_NAMES_FLAT[p.root];
+  // Prefer the root exactly as typed (keeps F#, not Gb) so this matches the title.
+  const rootName = queryRootText() || PC_NAMES_FLAT[p.root];
   if (p.kind === 'chord') {
     return { title: `${rootName}${chordQualitySuffix(p.quality)}`, sub: `${rootName}${p.quality} chord` };
   }
