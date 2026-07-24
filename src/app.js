@@ -340,7 +340,7 @@ function render() {
   renderInfo();
   const titleAscii = titleText();
   document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
-  document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Finder`;
+  document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Chord & Scale Finder`;
   document.getElementById('play').disabled = matchedMidis().length === 0;
   syncURL();
 }
