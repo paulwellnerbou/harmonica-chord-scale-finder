@@ -2,7 +2,7 @@
 // the clipboard as a PNG. Drawn natively so we control the background — it is
 // left transparent, i.e. without the page's blue backdrop.
 
-import { PC_NAMES_FLAT, degreeOf, highlightFor } from './theory.js';
+import { degreeOf, highlightFor, withMusicAccidentals } from './theory.js';
 import { buildHarp } from './harmonica.js';
 
 const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, TITLE_GAP = 12;
@@ -124,12 +124,12 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
     ctx.textBaseline = 'middle';
     const big = n.type === 'blow' || n.type === 'draw';
     ctx.font = `700 ${big ? 25 : 21}px ${FONT}`;
-    ctx.fillText(n.name, x + COL_W / 2, top + h / 2 - (hit ? 8 : 0));
+    ctx.fillText(withMusicAccidentals(n.name), x + COL_W / 2, top + h / 2 - (hit ? 8 : 0));
 
     if (hit) {
       ctx.font = `700 11px ${FONT}`;
       ctx.fillStyle = 'rgba(34,27,18,0.66)';
-      ctx.fillText(degreeOf(n.pc, parsed.root), x + COL_W / 2, top + h / 2 + 12);
+      ctx.fillText(withMusicAccidentals(degreeOf(n.pc, parsed.root)), x + COL_W / 2, top + h / 2 + 12);
     }
     if (TAG[n.type]) {
       ctx.font = `800 9px ${FONT}`;

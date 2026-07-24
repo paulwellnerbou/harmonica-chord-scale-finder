@@ -1,4 +1,4 @@
-import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor } from './theory.js';
+import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
 import { buildHarp, KEY_ORDER } from './harmonica.js';
 import { playNote, playSequence } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
@@ -104,7 +104,7 @@ function makeBox(note) {
 
   const name = document.createElement('span');
   name.className = 'note';
-  name.textContent = note.name;
+  name.textContent = withMusicAccidentals(note.name);
   el.appendChild(name);
 
   if (TECH_TAG[note.type]) {
@@ -122,7 +122,7 @@ function makeBox(note) {
     if (cls !== 'dim') {
       const deg = document.createElement('span');
       deg.className = 'deg';
-      deg.textContent = degreeOf(note.pc, p.root);
+      deg.textContent = withMusicAccidentals(degreeOf(note.pc, p.root));
       el.appendChild(deg);
     }
   }
@@ -259,7 +259,7 @@ function renderInfo() {
       const bucket = highlightFor(pc, p, state.triad); // 'root' | 'match' | 'tone'
       const cls = !reach ? 'chip miss' : `chip ${bucket}`;
       const flag = !reach ? ' ✕' : onlyOver ? ' °' : '';
-      return `<span class="${cls}">${PC_NAMES_FLAT[pc]}<em>${degreeOf(pc, p.root)}</em>${flag}</span>`;
+      return `<span class="${cls}">${withMusicAccidentals(PC_NAMES_FLAT[pc])}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</span>`;
     })
     .join('');
 
@@ -269,7 +269,7 @@ function renderInfo() {
     : `<span class="sw root"></span>root <span class="sw match"></span>chord tone`;
 
   info.innerHTML = `
-    <div class="detected"><strong>${title}</strong>${sub ? `<span>${sub}</span>` : ''}
+    <div class="detected"><strong>${withMusicAccidentals(title)}</strong>${sub ? `<span>${sub}</span>` : ''}
       <button type="button" class="share-link" title="Copy a shareable link to this selection">${SHARE_LABEL}</button>
     </div>
     <div class="chips">${chips}</div>
@@ -298,7 +298,7 @@ function matchedMidis() {
 function render() {
   renderHarp();
   renderInfo();
-  const title = titleText();
+  const title = withMusicAccidentals(titleText());
   document.getElementById('harp-title').textContent = title;
   document.title = `${title} — Harmonica Finder`;
   document.getElementById('play').disabled = matchedMidis().length === 0;
@@ -410,12 +410,12 @@ function initKeySelect() {
     li.className = 'cbx-opt';
     li.id = `key-opt-${i}`;
     li.setAttribute('role', 'option');
-    li.dataset.key = k;
-    li.textContent = k;
+    li.dataset.key = k; // keep the raw key for logic
+    li.textContent = withMusicAccidentals(k);
     li.setAttribute('aria-selected', String(k === state.key));
     menu.appendChild(li);
   });
-  valEl.textContent = state.key; // reflect key seeded from the URL
+  valEl.textContent = withMusicAccidentals(state.key); // reflect key seeded from the URL
 
   const opts = () => [...menu.children];
   let activeIndex = KEY_ORDER.indexOf(state.key);
@@ -443,7 +443,7 @@ function initKeySelect() {
   };
   const choose = (k) => {
     state.key = k;
-    valEl.textContent = k;
+    valEl.textContent = withMusicAccidentals(k);
     opts().forEach((o) => o.setAttribute('aria-selected', String(o.dataset.key === k)));
     render();
     closeMenu(true);
@@ -481,8 +481,9 @@ function buildImage() {
     showBlowBends: state.showBlowBends,
     showOverblow: state.showOverblow,
     showOverdraw: state.showOverdraw,
-    title: titleText(),
+    title: withMusicAccidentals(titleText()),
   });
+  // Slug stays ascii (from the unformatted title) for a clean filename.
   const slug = titleText().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');
   return { canvas, filename: `harmonica-${slug}.png` };
 }
