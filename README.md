@@ -1,70 +1,40 @@
-# Harmonica Chord & Scale Finder
+# Harmonica chord & scale finder
 
-**Live demo: <https://harmonica.wbou.dev/>**
+A single-page web app that shows where any chord or scale sits on a 10-hole diatonic (Richter-tuned) harmonica — which hole and technique (blow, draw, bend, overblow/overdraw) plays each note, for any key of harp. The layout mirrors the [harmonica.com bending tool](https://www.harmonica.com/bending-tool/).
 
-A client-only web app that shows **where a chord or scale lives on a 10-hole
-diatonic (Richter-tuned) harmonica** — including draw/blow notes, bends,
-overblows and overdraws. The layout mirrors the
-[harmonica.com bending tool](https://www.harmonica.com/bending-tool/).
+Live at [harmonica.wbou.dev](https://harmonica.wbou.dev/).
 
 ## Features
 
-- Type a **chord** (`C`, `Am7`, `E7`, `F#9`, `Cmaj7`, `Dm7b5`, `Gsus4`, …) or a
-  **scale** (`C Blues`, `Em Pentatonic`, `D Dorian`, `A Mixolydian`,
-  `F Harmonic Minor`, …). A bare note list (`C E G`) works too.
-- Highlights every hole/technique that plays a target note, with the interval
-  degree (`R`, `b3`, `5`, `b7`, …) and the **root** picked out. For a scale, the
-  **tonic-triad notes** (3rd & 5th) are marked more strongly than the remaining
-  passing tones.
-- Switch the **harp key** (G through F#); the whole chart transposes.
-- Toggle **bends** and **overblows/overdraws** on or off.
-- Click any note to hear it (Web Audio, no samples).
-- **Copy or download the layout as an image** — a split button (`⧉ Copy image`
-  with a ▾ menu to switch to `⤓ Download image`). Rendered natively to a canvas
-  with a **transparent background** (no page backdrop) and a descriptive title
-  baked in (e.g. "C Blues Scale · Harp in C", "A Minor 7 · Harp in C"). Copy
-  falls back to a download where the clipboard image API is unavailable.
-- The current key + chord/scale also shows as the page heading and the browser
-  tab title.
+- Type a chord (`C`, `Am7`, `E7`, `F#9`, `Cmaj7`, …) or a scale (`C Blues`, `Em Pentatonic`, `D Dorian`, …) — or a bare note list (`C E G`) — and every hole/technique that plays a target note lights up, labelled with its interval degree.
+- The **root** is picked out; for a scale the **tonic-triad** notes (3rd & 5th) are marked more strongly than the remaining passing tones.
+- Switch the **harp key** (G through F#) and the whole chart transposes.
+- Toggle bends and overblows/overdraws on or off.
+- Play the highlighted notes, or click any single note, to hear it (Web Audio).
+- Copy or download the layout as a PNG — transparent background, title baked in — via the split image button.
 
-## Layout
+## Harmonica model
 
-Blow techniques sit **above** the number bar, draw techniques **below** it, and
-deeper bends sit **further** from the bar:
+Standard Richter tuning is encoded once as the key-of-C harp (as MIDI numbers); every other key is a straight transposition. Bends are the chromatic notes strictly between the blow and draw reed; overblows/overdraws sit a semitone above the higher reed. Draw bends live on holes 1–6, blow bends on 7–10. Everything you blow is drawn above the number bar and everything you draw below it, with deeper bends further from the bar.
 
-```
-                overblow (holes 1–6)  /  blow bends (holes 7–10, deeper = higher)
-                ─────────────────  BLOW  ─────────────────
-                ══════════════  hole numbers  ═════════════
-                ─────────────────  DRAW  ─────────────────
-                draw bends (holes 1–6, deeper = lower)  /  overdraw (holes 7–10)
-```
+## Run locally
 
-## Music theory
+Static files, no build step — but ES modules need a server (`file://` won't work):
 
-`src/harmonica.js` encodes the key-of-C Richter harp as MIDI numbers; every
-other key is a transposition. Bends are the chromatic notes strictly between the
-blow and draw reeds; overblows/overdraws are a semitone above the higher reed.
-`src/theory.js` turns chord/scale text into octave-independent pitch-class sets.
+    python3 -m http.server
 
-## Running
+then open `http://localhost:8000`.
 
-No build step. Serve the folder over HTTP (ES modules need `http://`, not
-`file://`):
+## Code layout
 
-```bash
-python3 -m http.server 5178
-```
+- `index.html` — markup only
+- `styles.css` — styles
+- `src/theory.js` — note/chord/scale parsing → pitch-class sets, tonic-triad and highlight helpers (pure)
+- `src/harmonica.js` — Richter note map and transposition (pure)
+- `src/audio.js` — Web Audio playback
+- `src/exporter.js` — native-canvas PNG export (copy / download)
+- `src/app.js` — features, state and DOM wiring
 
-Then open <http://localhost:5178>.
+## Deploy
 
-## Files
-
-| File | Purpose |
-|------|---------|
-| `index.html` | Page structure |
-| `styles.css` | Layout & theme |
-| `src/theory.js` | Note / chord / scale parsing → pitch classes |
-| `src/harmonica.js` | Richter layout, transposition, full note map |
-| `src/audio.js` | Web Audio note playback |
-| `src/app.js` | Rendering & interaction |
+GitHub Pages, serving the repo straight from `main`. `CNAME` holds the custom domain and `.nojekyll` keeps the `src/` modules served untouched. Every push to `main` redeploys.
