@@ -126,12 +126,11 @@ function renderHarp() {
 function describeParsed(p) {
   const rootName = PC_NAMES_FLAT[p.root];
   if (p.kind === 'chord') {
-    const q = p.quality === '' ? 'major' : p.quality;
-    return { title: `${rootName}${p.quality === '' ? '' : p.quality}`, sub: `${rootName} ${q} chord` };
+    return { title: `${rootName}${chordQualitySuffix(p.quality)}`, sub: `${rootName}${p.quality} chord` };
   }
   if (p.kind === 'scale') {
-    const label = p.type.replace(/\b\w/g, (c) => c.toUpperCase());
-    return { title: `${rootName} ${label}`, sub: `${rootName} ${p.type} scale${p.hadRoot ? '' : ' (root defaulted to C)'}` };
+    const label = scaleDisplayName(p.type);
+    return { title: `${rootName} ${label}`, sub: `${rootName} ${label} scale${p.hadRoot ? '' : ' (root defaulted to C)'}` };
   }
   return { title: 'Notes', sub: 'note set' };
 }
