@@ -1,0 +1,167 @@
+// Music-theory core: parse note names, chords and scales into pitch-class sets.
+// A "pitch class" is a note reduced to 0-11 (C=0 .. B=11), octave-independent,
+// which is all the harmonica highlighter needs to match against.
+
+// Harmonica charts spell accidentals as flats, so we do too.
+export const PC_NAMES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+const LETTER_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+// Normalize the various unicode/ascii accidental glyphs a user might type.
+function normalizeAccidentals(s) {
+  return s.replace(/♯/g, '#').replace(/♭/g, 'b').replace(/𝄪/g, '##');
+}
+
+// Parse a note name at the START of `str`. Returns {pc, len} or null.
+// `len` is how many characters were consumed (letter + accidentals).
+function parseNoteHead(str) {
+  const s = normalizeAccidentals(str);
+  const letter = s[0]?.toUpperCase();
+  if (!(letter in LETTER_PC)) return null;
+  let pc = LETTER_PC[letter];
+  let len = 1;
+  while (len < s.length && (s[len] === '#' || s[len] === 'b')) {
+    pc += s[len] === '#' ? 1 : -1;
+    len++;
+  }
+  return { pc: ((pc % 12) + 12) % 12, len };
+}
+
+export function parseNote(str) {
+  const trimmed = str.trim();
+  const head = parseNoteHead(trimmed);
+  if (!head || head.len !== normalizeAccidentals(trimmed).length) return null;
+  return head.pc;
+}
+
+// --- Chords -----------------------------------------------------------------
+// Intervals in semitones from the root. Ordered aliases; the parser matches the
+// quality string (everything after the root) case-sensitively where it matters
+// (M7 vs m7), so keys are the exact quality text.
+const CHORD_QUALITIES = {
+  '': [0, 4, 7], 'maj': [0, 4, 7], 'major': [0, 4, 7], 'M': [0, 4, 7],
+  'm': [0, 3, 7], 'min': [0, 3, 7], '-': [0, 3, 7],
+  'dim': [0, 3, 6], 'o': [0, 3, 6], '°': [0, 3, 6],
+  'aug': [0, 4, 8], '+': [0, 4, 8],
+  '5': [0, 7],
+  '6': [0, 4, 7, 9], 'M6': [0, 4, 7, 9], 'maj6': [0, 4, 7, 9],
+  'm6': [0, 3, 7, 9], 'min6': [0, 3, 7, 9], '-6': [0, 3, 7, 9],
+  '69': [0, 4, 7, 9, 2], '6/9': [0, 4, 7, 9, 2],
+  '7': [0, 4, 7, 10], 'dom7': [0, 4, 7, 10],
+  'maj7': [0, 4, 7, 11], 'M7': [0, 4, 7, 11], 'Δ': [0, 4, 7, 11], 'Δ7': [0, 4, 7, 11], 'major7': [0, 4, 7, 11],
+  'm7': [0, 3, 7, 10], 'min7': [0, 3, 7, 10], '-7': [0, 3, 7, 10],
+  'mmaj7': [0, 3, 7, 11], 'mM7': [0, 3, 7, 11], 'minmaj7': [0, 3, 7, 11], '-Δ7': [0, 3, 7, 11],
+  '7b5': [0, 4, 6, 10],
+  '7#5': [0, 4, 8, 10], '7+5': [0, 4, 8, 10], 'aug7': [0, 4, 8, 10], '+7': [0, 4, 8, 10], '7+': [0, 4, 8, 10],
+  '7b9': [0, 4, 7, 10, 1],
+  '7#9': [0, 4, 7, 10, 3],
+  '7#11': [0, 4, 7, 10, 6],
+  '7b13': [0, 4, 7, 10, 8],
+  'm7b5': [0, 3, 6, 10], 'ø': [0, 3, 6, 10], 'ø7': [0, 3, 6, 10], 'halfdim': [0, 3, 6, 10],
+  'dim7': [0, 3, 6, 9], 'o7': [0, 3, 6, 9], '°7': [0, 3, 6, 9],
+  '9': [0, 4, 7, 10, 2],
+  'maj9': [0, 4, 7, 11, 2], 'M9': [0, 4, 7, 11, 2],
+  'm9': [0, 3, 7, 10, 2], 'min9': [0, 3, 7, 10, 2], '-9': [0, 3, 7, 10, 2],
+  '11': [0, 7, 10, 2, 5], // dominant 11 usually omits the 3rd
+  'm11': [0, 3, 7, 10, 2, 5], 'min11': [0, 3, 7, 10, 2, 5],
+  '13': [0, 4, 7, 10, 2, 9], // usually omits the 11
+  'maj13': [0, 4, 7, 11, 2, 9], 'M13': [0, 4, 7, 11, 2, 9],
+  'm13': [0, 3, 7, 10, 2, 9], 'min13': [0, 3, 7, 10, 2, 9],
+  'sus2': [0, 2, 7],
+  'sus4': [0, 5, 7], 'sus': [0, 5, 7],
+  '7sus4': [0, 5, 7, 10], '7sus': [0, 5, 7, 10], '9sus4': [0, 5, 7, 10, 2],
+  'add9': [0, 4, 7, 2], 'add2': [0, 4, 7, 2],
+  'madd9': [0, 3, 7, 2], 'madd2': [0, 3, 7, 2],
+};
+
+export function parseChord(str) {
+  const trimmed = normalizeAccidentals(str.trim());
+  const head = parseNoteHead(trimmed);
+  if (!head) return null;
+  const quality = trimmed.slice(head.len);
+  if (!(quality in CHORD_QUALITIES)) return null;
+  const pcs = CHORD_QUALITIES[quality].map((iv) => (head.pc + iv) % 12);
+  return { kind: 'chord', root: head.pc, quality, pcs: [...new Set(pcs)] };
+}
+
+// --- Scales -----------------------------------------------------------------
+const SCALE_TYPES = {
+  'major': [0, 2, 4, 5, 7, 9, 11], 'ionian': [0, 2, 4, 5, 7, 9, 11],
+  'minor': [0, 2, 3, 5, 7, 8, 10], 'natural minor': [0, 2, 3, 5, 7, 8, 10],
+  'natural': [0, 2, 3, 5, 7, 8, 10], 'aeolian': [0, 2, 3, 5, 7, 8, 10],
+  'm': [0, 2, 3, 5, 7, 8, 10], // "E m" style, rarely typed but harmless
+  'harmonic minor': [0, 2, 3, 5, 7, 8, 11],
+  'melodic minor': [0, 2, 3, 5, 7, 9, 11],
+  'harmonic major': [0, 2, 4, 5, 7, 8, 11],
+  'major pentatonic': [0, 2, 4, 7, 9], 'pentatonic major': [0, 2, 4, 7, 9], 'maj pentatonic': [0, 2, 4, 7, 9],
+  'minor pentatonic': [0, 3, 5, 7, 10], 'pentatonic minor': [0, 3, 5, 7, 10],
+  'pentatonic': [0, 3, 5, 7, 10], 'm pentatonic': [0, 3, 5, 7, 10], 'min pentatonic': [0, 3, 5, 7, 10],
+  'blues': [0, 3, 5, 6, 7, 10], 'minor blues': [0, 3, 5, 6, 7, 10], 'm blues': [0, 3, 5, 6, 7, 10],
+  'major blues': [0, 2, 3, 4, 7, 9],
+  'dorian': [0, 2, 3, 5, 7, 9, 10],
+  'phrygian': [0, 1, 3, 5, 7, 8, 10],
+  'phrygian dominant': [0, 1, 4, 5, 7, 8, 10],
+  'lydian': [0, 2, 4, 6, 7, 9, 11],
+  'mixolydian': [0, 2, 4, 5, 7, 9, 10],
+  'locrian': [0, 1, 3, 5, 6, 8, 10],
+  'whole tone': [0, 2, 4, 6, 8, 10], 'wholetone': [0, 2, 4, 6, 8, 10],
+  'chromatic': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+};
+
+// A "scale word" appears somewhere in the input string.
+const SCALE_KEYWORDS = ['ionian', 'aeolian', 'dorian', 'phrygian', 'lydian', 'mixolydian',
+  'locrian', 'pentatonic', 'blues', 'harmonic', 'melodic', 'natural', 'chromatic',
+  'whole tone', 'wholetone', 'major', 'minor', 'scale'];
+
+function looksLikeScale(str) {
+  const s = str.toLowerCase();
+  return SCALE_KEYWORDS.some((kw) => s.includes(kw));
+}
+
+export function parseScale(str) {
+  let trimmed = normalizeAccidentals(str.trim()).replace(/\s+scale\s*$/i, '');
+  const head = parseNoteHead(trimmed);
+  const root = head ? head.pc : 0; // default root C when the user omits it (e.g. "Dorian")
+  const rest = (head ? trimmed.slice(head.len) : trimmed).trim().toLowerCase();
+  const type = rest === '' ? 'major' : rest;
+  if (!(type in SCALE_TYPES)) return null;
+  const pcs = SCALE_TYPES[type].map((iv) => (root + iv) % 12);
+  return { kind: 'scale', root, type, hadRoot: !!head, pcs };
+}
+
+// --- Note list ("C E G", "C, Eb, G") ---------------------------------------
+function parseNoteList(str) {
+  const tokens = str.split(/[\s,]+/).map((t) => t.trim()).filter(Boolean);
+  if (tokens.length < 2) return null; // a single token is treated as a chord
+  const pcs = [];
+  for (const t of tokens) {
+    const pc = parseNote(t);
+    if (pc === null) return null;
+    pcs.push(pc);
+  }
+  return { kind: 'notes', root: pcs[0], pcs: [...new Set(pcs)] };
+}
+
+// --- Top-level dispatch -----------------------------------------------------
+// Decides whether the input is a scale, a chord, or a bare note list.
+// Convention: a spelled-out quality word ("C minor", "C major") reads as a
+// scale; a chord symbol ("Cm", "Cmaj7") reads as a chord.
+export function parseInput(str) {
+  if (!str || !str.trim()) return null;
+  if (looksLikeScale(str)) {
+    const scale = parseScale(str);
+    if (scale) return scale;
+  }
+  const chord = parseChord(str);
+  if (chord) return chord;
+  const notes = parseNoteList(str);
+  if (notes) return notes;
+  // Last resort: maybe it's a scale keyword we didn't flag, or a lone accidental note.
+  return parseScale(str) || null;
+}
+
+// Human-readable interval label for a pitch class relative to a root.
+const DEGREE_LABEL = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+export function degreeOf(pc, root) {
+  return DEGREE_LABEL[(((pc - root) % 12) + 12) % 12];
+}

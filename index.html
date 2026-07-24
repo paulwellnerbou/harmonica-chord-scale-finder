@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmonica Chord &amp; Scale Finder</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🎵</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Harmonica Chord &amp; Scale Finder</h1>
+    <p class="tagline">Which holes, bends &amp; overblows play your chord or scale on a diatonic (Richter) harp</p>
+  </header>
+
+  <section class="controls">
+    <div class="field grow">
+      <label for="query">Chord or scale</label>
+      <input id="query" type="text" placeholder="e.g. C, Am7, E7, F#9, C Blues, Em Pentatonic" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label for="key">Harp key</label>
+      <select id="key"></select>
+    </div>
+    <button id="play" class="btn" title="Play the highlighted notes">▶ Play</button>
+  </section>
+
+  <section class="examples">
+    <span>Try:</span>
+    <button class="example" data-q="C">C</button>
+    <button class="example" data-q="Am7">Am7</button>
+    <button class="example" data-q="E7">E7</button>
+    <button class="example" data-q="F#9">F#9</button>
+    <button class="example" data-q="G7">G7</button>
+    <button class="example" data-q="C Blues">C Blues</button>
+    <button class="example" data-q="Em Pentatonic">Em Pentatonic</button>
+    <button class="example" data-q="D Dorian">D Dorian</button>
+    <button class="example" data-q="A Mixolydian">A Mixolydian</button>
+  </section>
+
+  <section class="stage">
+    <div class="key-badge">Harp&nbsp;in&nbsp;<span id="key-label">C</span></div>
+    <div id="harp" class="harp"></div>
+    <div class="axis-labels">
+      <span class="axis blow-axis">▲ blow (above bar)</span>
+      <span class="axis draw-axis">▼ draw (below bar)</span>
+    </div>
+  </section>
+
+  <section class="toggles">
+    <label><input type="checkbox" id="toggle-bends" checked /> Show bends</label>
+    <label><input type="checkbox" id="toggle-over" checked /> Show overblows / overdraws</label>
+  </section>
+
+  <section id="info" class="info"></section>
+
+  <footer class="foot">
+    <p>Diatonic 10-hole Richter tuning. Blow techniques sit above the number bar, draw techniques below;
+      deeper bends sit further from the bar. Click any note to hear it.</p>
+  </footer>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

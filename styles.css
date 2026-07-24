@@ -1,0 +1,261 @@
+:root {
+  --bg: #dcecf4;
+  --bg-2: #eaf5fb;
+  --ink: #24303a;
+  --muted: #5c6b78;
+
+  --reed-fill: #e7d8f7;
+  --reed-border: #b493df;
+  --reed-panel: #ede3fa;
+
+  --bend-fill: #bfe6f8;
+  --bend-border: #6cb9de;
+
+  --over-fill: #ffe0b8;
+  --over-border: #e8a24a;
+
+  --bar: #34383d;
+
+  --match: #1f9d55;
+  --match-fill: #c7f0d6;
+  --root: #e8730c;
+  --root-fill: #ffe0bf;
+
+  --radius: 12px;
+  --box-h: 46px;
+  --reed-h: 62px;
+  font-synthesis-weight: none;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  min-height: 100vh;
+  padding: 20px clamp(12px, 4vw, 40px) 48px;
+}
+
+.topbar { text-align: center; margin-bottom: 18px; }
+.topbar h1 { margin: 0; font-size: clamp(1.3rem, 3.4vw, 2rem); letter-spacing: -0.01em; }
+.tagline { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; }
+
+/* --- Controls --------------------------------------------------------------*/
+.controls {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  max-width: 860px;
+  margin: 0 auto 12px;
+}
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field.grow { flex: 1 1 320px; }
+.field label { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.field input, .field select {
+  font-size: 1.05rem;
+  padding: 11px 13px;
+  border: 1.5px solid var(--reed-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+}
+.field input:focus, .field select:focus { outline: 2px solid var(--root); outline-offset: 1px; }
+.field select { cursor: pointer; min-width: 84px; }
+
+.btn {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #7b4fc4;
+  color: #fff;
+  cursor: pointer;
+  height: 46px;
+}
+.btn:hover { background: #6a3fb3; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:disabled:hover { background: #7b4fc4; }
+
+/* --- Examples --------------------------------------------------------------*/
+.examples {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  justify-content: center; max-width: 860px; margin: 0 auto 22px;
+  color: var(--muted); font-size: 0.9rem;
+}
+.example {
+  border: 1px solid var(--reed-border);
+  background: #fff; color: var(--ink);
+  padding: 5px 12px; border-radius: 999px; cursor: pointer; font-size: 0.88rem;
+}
+.example:hover { background: var(--reed-fill); }
+
+/* --- Harp stage ------------------------------------------------------------*/
+.stage {
+  max-width: 1040px;
+  margin: 0 auto;
+  overflow-x: auto;
+  padding: 6px 2px 4px;
+}
+.key-badge {
+  text-align: center; font-weight: 600; color: var(--muted);
+  margin-bottom: 6px; font-size: 0.95rem;
+}
+.key-badge span { color: var(--ink); }
+
+.harp {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(52px, 1fr));
+  grid-template-rows:
+    var(--box-h)  /* 1 deepest blow bend */
+    var(--box-h)  /* 2 blow bend / overblow */
+    var(--reed-h) /* 3 blow */
+    34px          /* 4 number bar */
+    var(--reed-h) /* 5 draw */
+    var(--box-h)  /* 6 draw bend / overdraw */
+    var(--box-h)  /* 7 draw bend */
+    var(--box-h); /* 8 draw bend */
+  gap: 8px 8px;
+  min-width: 640px;
+  position: relative;
+  /* Absorbs the number bar's -6px overhang so .stage doesn't always show a scrollbar. */
+  padding: 0 6px;
+}
+
+/* Unified rounded panel behind the blow row, number bar and draw row. */
+.reed-panel {
+  grid-column: 1 / -1;
+  grid-row: 3 / 6;
+  background: var(--reed-panel);
+  border: 1.5px solid var(--reed-border);
+  border-radius: 16px;
+  z-index: 0;
+}
+/* Dark full-width number bar overlapping the panel's middle. */
+.number-bar {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  background: var(--bar);
+  border-radius: 7px;
+  z-index: 1;
+  align-self: center;
+  height: 30px;
+  margin: 0 -6px;
+}
+.hole-num {
+  z-index: 2;
+  align-self: center;
+  justify-self: center;
+  color: #fff;
+  background: #000;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-width: 22px;
+  height: 22px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* --- Note boxes ------------------------------------------------------------*/
+.box {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.06s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+}
+.box:hover { transform: translateY(-1px); }
+.box:active { transform: translateY(0); }
+.box .note { font-size: 1.15rem; font-weight: 700; line-height: 1; }
+.box .deg { font-size: 0.62rem; font-weight: 700; opacity: 0.7; margin-top: 2px; }
+.box .tag {
+  position: absolute; top: 3px; right: 4px;
+  font-size: 0.5rem; font-weight: 800; letter-spacing: 0.03em;
+  opacity: 0.65;
+}
+
+.box.reed { background: var(--reed-fill); border-color: var(--reed-border); }
+.box.reed .note { font-size: 1.35rem; }
+.box.bend { background: var(--bend-fill); border-color: var(--bend-border); }
+.box.over { background: var(--over-fill); border-color: var(--over-border); }
+
+/* Highlight states */
+.box.match {
+  background: var(--match-fill);
+  border-color: var(--match);
+  box-shadow: 0 0 0 2px var(--match) inset;
+}
+.box.root {
+  background: var(--root-fill);
+  border-color: var(--root);
+  box-shadow: 0 0 0 2.5px var(--root) inset;
+}
+.box.dim { opacity: 0.32; filter: saturate(0.5); }
+.box.dim:hover { opacity: 0.6; }
+
+.axis-labels {
+  display: flex; justify-content: space-between;
+  max-width: 1040px; margin: 8px auto 0;
+  color: var(--muted); font-size: 0.8rem; padding: 0 4px;
+}
+
+/* --- Toggles ---------------------------------------------------------------*/
+.toggles {
+  display: flex; gap: 22px; justify-content: center;
+  margin: 18px auto 0; flex-wrap: wrap;
+  font-size: 0.92rem; color: var(--muted);
+}
+.toggles label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+/* --- Info panel ------------------------------------------------------------*/
+.info {
+  max-width: 860px; margin: 22px auto 0;
+  background: #fff; border: 1.5px solid var(--reed-border);
+  border-radius: 14px; padding: 16px 18px;
+}
+.info .hint { margin: 0; color: var(--muted); }
+.info .hint.warn { color: #a23b2e; }
+.info code {
+  background: var(--bg); padding: 1px 6px; border-radius: 5px;
+  font-size: 0.9em;
+}
+.detected { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.detected strong { font-size: 1.25rem; }
+.detected span { color: var(--muted); font-size: 0.9rem; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  padding: 5px 11px; border-radius: 999px;
+  font-weight: 700; border: 1.5px solid;
+}
+.chip em { font-style: normal; font-size: 0.7rem; font-weight: 600; opacity: 0.7; }
+.chip.match { background: var(--match-fill); border-color: var(--match); color: #145c33; }
+.chip.root { background: var(--root-fill); border-color: var(--root); color: #8a4406; }
+.chip.miss { background: #f0f0f0; border-color: #c7c7c7; color: #8a8a8a; }
+
+.legendline { margin: 0; color: var(--muted); font-size: 0.82rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sw { width: 13px; height: 13px; border-radius: 4px; display: inline-block; border: 1.5px solid; margin-left: 8px; }
+.sw.root { background: var(--root-fill); border-color: var(--root); }
+.sw.match { background: var(--match-fill); border-color: var(--match); }
+.sw.miss { background: #f0f0f0; border-color: #c7c7c7; }
+
+.foot { max-width: 860px; margin: 24px auto 0; color: var(--muted); font-size: 0.82rem; text-align: center; }
+.foot p { margin: 0; line-height: 1.5; }
+
+@media (max-width: 560px) {
+  .harp { gap: 5px; }
+  .box .note { font-size: 1rem; }
+  .box.reed .note { font-size: 1.1rem; }
+}
