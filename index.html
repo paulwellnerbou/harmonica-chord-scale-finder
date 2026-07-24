@@ -23,6 +23,7 @@
       <select id="key"></select>
     </div>
     <button id="play" class="btn" title="Play the highlighted notes">▶ Play</button>
+    <button id="copy" class="btn btn-secondary" title="Copy the harp layout as an image (transparent background)">⧉ Copy image</button>
   </section>
 
   <section class="examples">
@@ -39,11 +40,13 @@
   </section>
 
   <section class="stage">
-    <div class="key-badge">Harp&nbsp;in&nbsp;<span id="key-label">C</span></div>
-    <div id="harp" class="harp"></div>
-    <div class="axis-labels">
-      <span class="axis blow-axis">▲ blow (above bar)</span>
-      <span class="axis draw-axis">▼ draw (below bar)</span>
+    <div class="harp-title" id="harp-title">Harp in C</div>
+    <div class="harp-area">
+      <span class="side-label side-blow" aria-hidden="true">BLOW</span>
+      <span class="side-label side-draw" aria-hidden="true">DRAW</span>
+      <span class="side-label side-blow right" aria-hidden="true">BLOW</span>
+      <span class="side-label side-draw right" aria-hidden="true">DRAW</span>
+      <div id="harp" class="harp"></div>
     </div>
   </section>
 
@@ -55,8 +58,7 @@
   <section id="info" class="info"></section>
 
   <footer class="foot">
-    <p>Diatonic 10-hole Richter tuning. Blow techniques sit above the number bar, draw techniques below;
-      deeper bends sit further from the bar. Click any note to hear it.</p>
+    <p>Diatonic 10-hole Richter tuning. Deeper bends sit further from the number bar. Click any note to hear it.</p>
   </footer>
 
   <script type="module" src="src/app.js"></script>

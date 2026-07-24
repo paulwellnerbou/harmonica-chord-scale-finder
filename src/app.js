@@ -1,6 +1,7 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT } from './theory.js';
 import { buildHarp, KEY_ORDER } from './harmonica.js';
 import { playNote, playSequence } from './audio.js';
+import { renderHarpImage, copyCanvas } from './exporter.js';
 
 const state = {
   key: 'C',
@@ -135,6 +136,14 @@ function describeParsed(p) {
   return { title: 'Notes', sub: 'note set' };
 }
 
+// Title shown on the page, in the browser tab and baked into the copied image.
+// Uses the query verbatim (only when recognized) so it reads back what the user
+// asked for — e.g. "C Blues · Harp in C".
+function titleText() {
+  const what = state.parsed ? state.query.trim().replace(/\s+/g, ' ') : '';
+  return what ? `${what} · Harp in ${state.key}` : `Harp in ${state.key}`;
+}
+
 function renderInfo() {
   const info = document.getElementById('info');
   const p = state.parsed;
@@ -199,7 +208,9 @@ function matchedMidis() {
 function render() {
   renderHarp();
   renderInfo();
-  document.getElementById('key-label').textContent = state.key;
+  const title = titleText();
+  document.getElementById('harp-title').textContent = title;
+  document.title = `${title} — Harmonica Finder`;
   document.getElementById('play').disabled = matchedMidis().length === 0;
 }
 
@@ -239,6 +250,23 @@ function initControls() {
   document.getElementById('play').addEventListener('click', () => {
     const midis = matchedMidis();
     if (midis.length) playSequence(midis);
+  });
+
+  const copyBtn = document.getElementById('copy');
+  copyBtn.addEventListener('click', async () => {
+    const canvas = renderHarpImage({
+      key: state.key,
+      parsed: state.parsed,
+      showBends: state.showBends,
+      showOver: state.showOver,
+      title: titleText(),
+    });
+    const slug = titleText().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');
+    const result = await copyCanvas(canvas, `harmonica-${slug}.png`);
+    const original = copyBtn.textContent;
+    copyBtn.textContent = result === 'copied' ? '✓ Copied!' : '⤓ Downloaded';
+    copyBtn.disabled = true;
+    setTimeout(() => { copyBtn.textContent = original; copyBtn.disabled = false; }, 1600);
   });
 }
 

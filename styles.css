@@ -81,6 +81,10 @@ body {
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn:disabled:hover { background: #7b4fc4; }
 
+.btn-secondary { background: #fff; color: #6a3fb3; border: 1.5px solid var(--reed-border); }
+.btn-secondary:hover { background: var(--reed-fill); }
+.btn-secondary:disabled:hover { background: #fff; }
+
 /* --- Examples --------------------------------------------------------------*/
 .examples {
   display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
@@ -98,14 +102,35 @@ body {
 .stage {
   max-width: 1040px;
   margin: 0 auto;
-  overflow-x: auto;
   padding: 6px 2px 4px;
 }
-.key-badge {
-  text-align: center; font-weight: 600; color: var(--muted);
-  margin-bottom: 6px; font-size: 0.95rem;
+.harp-title {
+  text-align: center; font-weight: 700; color: var(--ink);
+  margin-bottom: 8px; font-size: 1.15rem;
 }
-.key-badge span { color: var(--ink); }
+
+/* Positioning context for the rotated BLOW / DRAW side labels. */
+.harp-area {
+  position: relative;
+  padding: 0 30px; /* gutters that hold the side labels */
+}
+.side-label {
+  position: absolute;
+  width: 26px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  pointer-events: none;
+}
+.side-label.right { left: auto; right: 0; }
+.side-label:not(.right) { left: 0; }
+/* Blow labels flank the top (blow) half, reading upward; draw the bottom half, downward. */
+.side-blow { top: 4px; height: 44%; writing-mode: vertical-rl; transform: rotate(180deg);
+  display: flex; align-items: center; justify-content: center; }
+.side-draw { bottom: 4px; height: 44%; writing-mode: vertical-rl;
+  display: flex; align-items: center; justify-content: center; }
 
 .harp {
   display: grid;
@@ -120,9 +145,10 @@ body {
     var(--box-h)  /* 7 draw bend */
     var(--box-h); /* 8 draw bend */
   gap: 8px 8px;
-  min-width: 640px;
+  min-width: 628px;
   position: relative;
-  /* Absorbs the number bar's -6px overhang so .stage doesn't always show a scrollbar. */
+  overflow-x: auto;
+  /* Absorbs the number bar's -6px overhang so no scrollbar shows unless needed. */
   padding: 0 6px;
 }
 
@@ -203,12 +229,6 @@ body {
 }
 .box.dim { opacity: 0.32; filter: saturate(0.5); }
 .box.dim:hover { opacity: 0.6; }
-
-.axis-labels {
-  display: flex; justify-content: space-between;
-  max-width: 1040px; margin: 8px auto 0;
-  color: var(--muted); font-size: 0.8rem; padding: 0 4px;
-}
 
 /* --- Toggles ---------------------------------------------------------------*/
 .toggles {

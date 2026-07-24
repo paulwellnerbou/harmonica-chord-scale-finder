@@ -15,6 +15,12 @@ overblows and overdraws. The layout mirrors the
 - Switch the **harp key** (G through F#); the whole chart transposes.
 - Toggle **bends** and **overblows/overdraws** on or off.
 - Click any note to hear it (Web Audio, no samples).
+- **Copy the layout as an image** (`⧉ Copy image`) — rendered natively to a
+  canvas with a **transparent background** (no page backdrop) and the harp key +
+  chord/scale baked in as a title. Falls back to a PNG download where the
+  clipboard image API is unavailable.
+- The current key + chord/scale also shows as the page heading and the browser
+  tab title.
 
 ## Layout
 
