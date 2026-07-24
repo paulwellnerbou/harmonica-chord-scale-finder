@@ -301,7 +301,7 @@ body::after {
 }
 .cbx-btn:hover { background: var(--input-bg-focus); border-color: color-mix(in srgb, var(--brass) 45%, var(--line)); }
 .cbx-btn:focus-visible { outline: none; border-color: var(--brass); box-shadow: var(--input-shadow), 0 0 0 3px var(--brass-soft); }
-.cbx-caret { font-size: 0.9rem; color: var(--muted); transition: rotate 0.2s ease, color 0.15s ease; }
+.cbx-caret { font-size: 1.1rem; color: var(--muted); transition: rotate 0.2s ease, color 0.15s ease; }
 .cbx-btn[aria-expanded="true"] .cbx-caret { rotate: 180deg; color: var(--brass); }
 .cbx-menu {
   top: calc(100% + 6px); left: 0; right: 0; min-width: 100%;
