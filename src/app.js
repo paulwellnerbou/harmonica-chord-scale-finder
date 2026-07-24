@@ -276,9 +276,7 @@ function renderInfo() {
     : `<span class="sw root"></span>root <span class="sw match"></span>chord tone`;
 
   info.innerHTML = `
-    <div class="detected"><strong>${accidentalsHtml(title)}</strong>${sub ? `<span>${sub}</span>` : ''}
-      <button type="button" class="share-link" title="Copy a shareable link to this selection">${SHARE_LABEL}</button>
-    </div>
+    <div class="detected"><strong>${accidentalsHtml(title)}</strong>${sub ? `<span>${sub}</span>` : ''}</div>
     <div class="chips">${chips}</div>
     <p class="legendline">${toneKey}
       <span class="sw miss"></span>unreachable (✕) · ° = needs overblow / overdraw</p>`;
@@ -350,11 +348,9 @@ function initControls() {
     el.addEventListener('change', (e) => { state[key] = e.target.checked; onToggle(); });
   });
 
-  // Share button lives inside the (re-rendered) info panel — delegate its click.
-  document.getElementById('info').addEventListener('click', (e) => {
-    const btn = e.target.closest('.share-link');
-    if (btn) copyLink(btn);
-  });
+  const shareBtn = document.getElementById('share-link');
+  shareBtn.innerHTML = SHARE_LABEL;
+  shareBtn.addEventListener('click', () => copyLink(shareBtn));
 
   document.querySelectorAll('.example').forEach((btn) => {
     btn.addEventListener('click', () => setQuery(btn.dataset.q));
