@@ -80,12 +80,16 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg-0: #ece1cf;
-  --bg-1: #f6efe1;
-  --glow: rgba(230, 150, 55, 0.16);
+  /* Same spotlight, inverted: the lit core is the *brightest* point here, so the
+     paper has to deepen into amber and shade off at the edges for it to read. */
+  --bg-0: #e0cfb2;
+  --bg-1: #efe3cd;
+  --glow: rgba(255, 254, 250, 1);
   --backdrop:
-    radial-gradient(115% 72% at 50% -8%, var(--glow), transparent 55%),
-    linear-gradient(180deg, var(--bg-1), var(--bg-0) 72%);
+    radial-gradient(86% 55% at 50% -6%, var(--glow), transparent 66%),
+    radial-gradient(122% 82% at 50% -8%, rgba(246, 182, 92, 0.5), transparent 66%),
+    radial-gradient(140% 110% at 50% 22%, transparent 38%, rgba(120, 88, 42, 0.19)),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0) 76%);
   --grain-opacity: 0.035;
   --grain-blend: multiply;
 
