@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="15" fill="#1e1710"/>
-  <g transform="translate(12,12)" fill="none" stroke="#e8a53f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="2.5" y="17.2" width="35" height="5.6" rx="1"/>
-    <rect x="6.5" y="13.1" width="27" height="4.3" rx="1.1"/>
-    <rect x="6.5" y="22.6" width="27" height="4.3" rx="1.1"/>
-    <g fill="#e8a53f" stroke="none">
-      <rect x="8.3" y="18.3" width="1.6" height="3.4" rx="0.4"/>
-      <rect x="11.9" y="18.3" width="1.6" height="3.4" rx="0.4"/>
-      <rect x="15.5" y="18.3" width="1.6" height="3.4" rx="0.4"/>
-      <rect x="19.1" y="18.3" width="1.6" height="3.4" rx="0.4"/>
-      <rect x="22.7" y="18.3" width="1.6" height="3.4" rx="0.4"/>
-      <rect x="26.3" y="18.3" width="1.6" height="3.4" rx="0.4"/>
-      <rect x="29.9" y="18.3" width="1.6" height="3.4" rx="0.4"/>
-    </g>
+  <rect width="64" height="64" rx="15" fill="#f6efe1"/>
+  <!-- Filled shapes rather than the strokes of the header mark: at a 16px tab
+       icon a 2px stroke lands under one device pixel and the harp turns to mush. -->
+  <g fill="#a9670f">
+    <rect x="8" y="17" width="48" height="9" rx="2"/>
+    <rect x="8" y="38" width="48" height="9" rx="2"/>
+    <rect x="2" y="24" width="60" height="16" rx="3"/>
+  </g>
+  <rect x="8" y="28" width="48" height="8" fill="#f6efe1"/>
+  <g fill="#a9670f">
+    <rect x="15.2" y="28" width="3" height="8"/>
+    <rect x="25.4" y="28" width="3" height="8"/>
+    <rect x="35.6" y="28" width="3" height="8"/>
+    <rect x="45.8" y="28" width="3" height="8"/>
   </g>
 </svg>
