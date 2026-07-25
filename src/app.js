@@ -1,6 +1,6 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
 import { buildHarp, KEY_ORDER } from './harmonica.js';
-import { playNote, playSequence } from './audio.js';
+import { playNote, playSequence, stopSequence, primeAudio } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
 // Corner-control glyphs. The play button swaps to pulsing bars while sounding;
@@ -395,24 +395,54 @@ function initControls() {
 
   document.getElementById('play').addEventListener('click', playMatched);
 
+  initAudioPriming();
   initImageButton();
 }
 
+// Browsers only let audio start from a user gesture, so wake the context on the
+// first one anywhere on the page — by the time Play is clicked it is running.
+function initAudioPriming() {
+  const prime = () => {
+    primeAudio();
+    window.removeEventListener('pointerdown', prime);
+    window.removeEventListener('keydown', prime);
+  };
+  window.addEventListener('pointerdown', prime);
+  window.addEventListener('keydown', prime);
+}
+
 // Play the highlighted notes and show pulsing bars on the button until they've
-// finished sounding (playback itself can't be stopped mid-flight).
+// finished sounding; while they do, the button stops playback instead.
+const PLAY_LABEL = 'Play the highlighted notes';
+const STOP_LABEL = 'Stop playback';
 let playTimer = null;
+let playing = false;
 function playMatched() {
   const btn = document.getElementById('play');
+  if (playing) { endPlayback(btn); return; }
   const midis = matchedMidis();
   if (!midis.length) return;
   const dur = playSequence(midis); // ms until the last note stops ringing
   clearTimeout(playTimer);
+  playing = true;
   btn.classList.add('is-playing');
   btn.innerHTML = PLAYING_ICON;
-  playTimer = setTimeout(() => {
-    btn.classList.remove('is-playing');
-    btn.innerHTML = PLAY_ICON;
-  }, dur);
+  setPlayLabel(btn, STOP_LABEL);
+  playTimer = setTimeout(() => endPlayback(btn), dur);
+}
+
+function endPlayback(btn) {
+  clearTimeout(playTimer);
+  stopSequence();
+  playing = false;
+  btn.classList.remove('is-playing');
+  btn.innerHTML = PLAY_ICON;
+  setPlayLabel(btn, PLAY_LABEL);
+}
+
+function setPlayLabel(btn, label) {
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
 }
 
 // Light / dark theme. The theme is set pre-paint by an inline script; here we
