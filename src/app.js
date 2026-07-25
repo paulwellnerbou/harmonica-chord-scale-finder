@@ -1,6 +1,6 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
-import { buildHarp, KEY_ORDER, playableNotes, tabLine } from './harmonica.js';
-import { playNote, playSequence, stopSequence, primeAudio } from './audio.js';
+import { buildHarp, KEY_ORDER, playableNotes, tabLine, pcOf } from './harmonica.js';
+import { playNote, playSequence, stopSequence, primeAudio, NOTE_MS } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
 // Corner-control glyphs. The play button swaps to pulsing bars while sounding;
@@ -99,12 +99,43 @@ function classForType(type) {
   return 'bend';
 }
 
+// A key on the harp or in the tab line is one specific pitch, so playing it
+// rings that pitch alone (both holes, where two make the same note) plus its
+// tab key — and the info panel's chip for it, that being the only place the
+// pitch class is shown.
+function soundNote(midi) {
+  playNote(midi);
+  ring(`.box[data-midi="${midi}"], .chip[data-pc="${pcOf(midi)}"]`);
+}
+
+// A chip stands for a pitch class rather than one octave, so playing it rings
+// every card carrying that note, wherever it sits on the harp.
+function soundPitchClass(midi) {
+  playNote(midi);
+  ring(`[data-pc="${pcOf(midi)}"]`);
+}
+
+// Hand the audio timing to CSS so the animation runs exactly as long as the tone.
+document.documentElement.style.setProperty('--ring-ms', `${NOTE_MS}ms`);
+
+let ringTimer = null;
+function ring(selector) {
+  document.querySelectorAll('.is-sounding').forEach((el) => el.classList.remove('is-sounding'));
+  const cards = [...document.querySelectorAll(selector)];
+  void document.body.offsetWidth; // commit the removal, so re-clicking a note restarts the animation
+  cards.forEach((el) => el.classList.add('is-sounding'));
+  clearTimeout(ringTimer);
+  ringTimer = setTimeout(() => cards.forEach((el) => el.classList.remove('is-sounding')), NOTE_MS);
+}
+
 function makeBox(note) {
   const el = document.createElement('button');
   el.type = 'button';
   // Second class is the exact technique (draw-bend / overblow / …) so each can
   // be toggled independently; classForType gives the shared base style.
   el.className = `box ${classForType(note.type)} ${note.type}`;
+  el.dataset.pc = String(note.pc);
+  el.dataset.midi = String(note.midi);
   el.style.gridColumn = String(note.hole);
   el.style.gridRow = String(gridRow(note.type, note.depth));
   el.title = `Hole ${note.hole} · ${labelForType(note)} · ${note.name}`;
@@ -134,7 +165,7 @@ function makeBox(note) {
     }
   }
 
-  el.addEventListener('click', () => playNote(note.midi));
+  el.addEventListener('click', () => soundNote(note.midi));
   return el;
 }
 
@@ -203,11 +234,13 @@ function renderTab() {
     const el = document.createElement('button');
     el.type = 'button';
     el.className = `box mini ${classForType(k.notes[0].type)} ${highlightFor(k.pc, state.parsed, state.triad)}`;
+    el.dataset.pc = String(k.pc);
+    el.dataset.midi = String(k.midi);
     el.textContent = k.text;
     const what = `${k.notes[0].name} · ${k.notes.map((n) => `hole ${n.hole} ${labelForType(n)}`).join(' or ')}`;
     el.title = what;
     el.setAttribute('aria-label', what); // the tab text alone reads poorly aloud
-    el.addEventListener('click', () => playNote(k.midi));
+    el.addEventListener('click', () => soundNote(k.midi));
     cell.appendChild(el);
 
     const name = document.createElement('span');
@@ -351,7 +384,7 @@ function renderInfo() {
       const flag = !reach ? ' ✕' : onlyOver ? ' °' : '';
       const name = withMusicAccidentals(PC_NAMES_FLAT[pc]);
       const midi = rootMidi + ((((pc - p.root) % 12) + 12) % 12);
-      return `<button type="button" class="${cls}" data-midi="${midi}" title="Play ${name}">${name}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</button>`;
+      return `<button type="button" class="${cls}" data-midi="${midi}" data-pc="${pc}" title="Play ${name}">${name}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</button>`;
     })
     .join('');
 
@@ -442,7 +475,7 @@ function initControls() {
   // Delegated: the note chips are rebuilt on every render.
   document.getElementById('info').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
-    if (chip) playNote(Number(chip.dataset.midi));
+    if (chip) soundPitchClass(Number(chip.dataset.midi));
   });
 
   document.getElementById('play').addEventListener('click', playMatched);

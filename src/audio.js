@@ -20,6 +20,12 @@ const STOP_TAIL = 0.05;
 // the events when it needs them.
 const LEAD_IN = 0.06;
 
+const NOTE_DUR = 0.7;
+
+// Click to silence for a single note — lets the UI time its feedback to what is
+// actually audible instead of restating these constants.
+export const NOTE_MS = (LEAD_IN + NOTE_DUR) * 1000;
+
 // Start the context before the first note is wanted: a fresh or suspended
 // context needs a moment to get its clock running, and that delay would land
 // entirely on the first note.
@@ -28,7 +34,7 @@ export function primeAudio() {
   if (c.state === 'suspended') c.resume();
 }
 
-export function playNote(midi, duration = 0.7, at = 0) {
+export function playNote(midi, duration = NOTE_DUR, at = 0) {
   const c = ac();
   if (c.state === 'suspended') c.resume();
   // A caller-supplied onset already carries the lead-in, and comes from a
