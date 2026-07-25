@@ -20,7 +20,8 @@ const C_HARP = {
   5:  { blow: 76, draw: 77, drawBends: [],            overblow: 78 },
   6:  { blow: 79, draw: 81, drawBends: [80],          overblow: 82 },
   7:  { blow: 84, draw: 83, blowBends: [],            overdraw: 85 },
-  8:  { blow: 88, draw: 86, blowBends: [87],          overdraw: 89 },
+  // Hole 8's overdraw is F — already a draw reed elsewhere, so it's omitted as redundant.
+  8:  { blow: 88, draw: 86, blowBends: [87] },
   9:  { blow: 91, draw: 89, blowBends: [90],          overdraw: 92 },
   10: { blow: 96, draw: 93, blowBends: [95, 94],      overdraw: 97 },
 };
