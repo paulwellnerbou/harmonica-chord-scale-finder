@@ -58,7 +58,7 @@ const NOTE_DUR = 0.62;
 
 // Click to silence for a single note — lets the UI time its feedback to what is
 // actually audible instead of restating these constants.
-export const NOTE_MS = (LEAD_IN + NOTE_DUR) * 1000;
+export const NOTE_MS = Math.round((LEAD_IN + NOTE_DUR) * 1000);
 
 export function playNote(midi, duration = NOTE_DUR, at = 0) {
   const c = ac();
