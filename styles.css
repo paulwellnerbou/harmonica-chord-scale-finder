@@ -385,6 +385,9 @@ body::after {
   box-shadow: var(--stage-shadow);
   transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
+/* The tab line runs the width of the harp, so give the corner share button its
+   own band below instead of letting the two overlap. */
+.stage:has(#scale-tab:not([hidden])) { padding-bottom: 56px; }
 .harp-title {
   text-align: center;
   font-family: 'Fraunces', Georgia, serif;
@@ -405,13 +408,50 @@ body::after {
   margin-left: -0.03em;
 }
 
+/* Heights of the four outer grid rows. They collapse to 0 when every technique
+   that lives in them is switched off, so a harp without bends/overblows doesn't
+   leave a band of dead space between the title and the reeds. Registered as
+   lengths so the collapse animates — the grid tracks, the side labels and the
+   fit wrapper's own height are all derived from them. */
+@property --row-1 { syntax: "<length>"; inherits: true; initial-value: 54px; }
+@property --row-2 { syntax: "<length>"; inherits: true; initial-value: 54px; }
+@property --row-6 { syntax: "<length>"; inherits: true; initial-value: 54px; }
+@property --row-7 { syntax: "<length>"; inherits: true; initial-value: 54px; }
+@property --row-8 { syntax: "<length>"; inherits: true; initial-value: 54px; }
+
 /* Wrapper that clips the harp; JS scales .harp-area down to fit narrow screens
    (a "zoom to fit" instead of a horizontal scrollbar). The vertical padding is
    clip room for the top/bottom rows' hover-lift + shadow. */
-.harp-fit { overflow: hidden; padding: 14px 0; }
+.harp-fit {
+  overflow: hidden;
+  padding: 14px 0;
+  /* Each track carries its own gap (the grid's row-gap is 0) so a row that
+     collapses takes its gap with it. */
+  --row-h: calc(var(--box-h) + var(--row-gap));
+  --num-row: calc(var(--num-h) + 2 * var(--row-gap));
+  --row-1: var(--row-h);
+  --row-2: var(--row-h);
+  --row-6: var(--row-h);
+  --row-7: var(--row-h);
+  --row-8: var(--row-h);
+  /* --tab-h is measured by fitHarp(); the rest animates with the row collapse. */
+  --harp-h: calc(var(--row-1) + var(--row-2) + var(--reed-h) + var(--num-row)
+    + var(--reed-h) + var(--row-6) + var(--row-7) + var(--row-8) + var(--tab-h, 0px));
+  transition:
+    --row-1 0.26s ease, --row-2 0.26s ease,
+    --row-6 0.26s ease, --row-7 0.26s ease, --row-8 0.26s ease;
+}
+/* Row 1 holds only the deepest blow bend, row 2 also the overblow; mirrored for
+   rows 6-8 below the comb. */
+.harp-fit.hide-blow-bend { --row-1: 0px; }
+.harp-fit.hide-blow-bend.hide-overblow { --row-2: 0px; }
+.harp-fit.hide-draw-bend { --row-7: 0px; --row-8: 0px; }
+.harp-fit.hide-draw-bend.hide-overdraw { --row-6: 0px; }
+
 .harp-area {
   position: relative;
   padding: 0 30px; /* gutters that hold the side labels */
+  container-type: inline-size; /* the tab line sizes its keys off the harp width */
 }
 .side-label {
   position: absolute;
@@ -426,24 +466,24 @@ body::after {
 .side-label.right { left: auto; right: 0; }
 .side-label:not(.right) { left: 0; }
 .side-label { display: flex; align-items: center; justify-content: center; height: var(--reed-h); }
-.side-blow { top: calc(2 * var(--box-h) + 2 * var(--row-gap));
+.side-blow { top: calc(var(--row-1) + var(--row-2));
   writing-mode: vertical-rl; transform: rotate(180deg); }
-.side-draw { top: calc(2 * var(--box-h) + var(--reed-h) + var(--num-h) + 4 * var(--row-gap));
+.side-draw { top: calc(var(--row-1) + var(--row-2) + var(--reed-h) + var(--num-row));
   writing-mode: vertical-rl; }
 
 .harp {
   display: grid;
   grid-template-columns: repeat(10, minmax(52px, 1fr));
   grid-template-rows:
-    var(--box-h)  /* 1 deepest blow bend */
-    var(--box-h)  /* 2 blow bend / overblow */
-    var(--reed-h) /* 3 blow */
-    var(--num-h)  /* 4 number bar */
-    var(--reed-h) /* 5 draw */
-    var(--box-h)  /* 6 draw bend / overdraw */
-    var(--box-h)  /* 7 draw bend */
-    var(--box-h); /* 8 draw bend */
-  gap: var(--row-gap) 8px;
+    var(--row-1)   /* 1 deepest blow bend */
+    var(--row-2)   /* 2 blow bend / overblow */
+    var(--reed-h)  /* 3 blow */
+    var(--num-row) /* 4 number bar */
+    var(--reed-h)  /* 5 draw */
+    var(--row-6)   /* 6 draw bend / overdraw */
+    var(--row-7)   /* 7 draw bend */
+    var(--row-8);  /* 8 draw bend */
+  column-gap: 8px;
   min-width: 628px;
   position: relative;
   padding: 0 6px; /* absorbs the number bar's -6px overhang */
@@ -505,6 +545,7 @@ body::after {
   font: inherit;
   cursor: pointer;
   padding: 0;
+  overflow: hidden; /* keeps the label inside while a collapsing row squashes it */
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
     0 1px 2px rgba(0, 0, 0, 0.28);
@@ -533,6 +574,10 @@ body::after {
   font-size: 0.5rem; font-weight: 800; letter-spacing: 0.03em;
   color: var(--brass-deep); opacity: 0.85;
 }
+
+/* The row gap lives inside the track (see .harp-fit), on the side facing the comb. */
+.box.blow-bend, .box.overblow { margin-bottom: var(--row-gap); }
+.box.draw-bend, .box.overdraw { margin-top: var(--row-gap); }
 
 .box.reed { background: var(--reed-fill); border-color: var(--reed-border); }
 .box.reed .note { font-size: 1.35rem; }
@@ -568,13 +613,13 @@ body::after {
 }
 .box.dim:hover { opacity: 0.6; }
 
-/* Animated show/hide of bends & overblows (grid rows keep their height, so the
-   keys fade + shrink in place — no layout shift). visibility flips after the
-   fade so hidden keys leave the tab order. */
-.harp.hide-draw-bend .box.draw-bend,
-.harp.hide-blow-bend .box.blow-bend,
-.harp.hide-overblow  .box.overblow,
-.harp.hide-overdraw  .box.overdraw {
+/* Animated show/hide of bends & overblows: the keys fade + shrink out while
+   their row collapses underneath them. visibility flips after the fade so
+   hidden keys leave the tab order. */
+.harp-fit.hide-draw-bend .box.draw-bend,
+.harp-fit.hide-blow-bend .box.blow-bend,
+.harp-fit.hide-overblow  .box.overblow,
+.harp-fit.hide-overdraw  .box.overdraw {
   opacity: 0;
   scale: 0.78;
   pointer-events: none;
@@ -586,6 +631,39 @@ body::after {
     scale 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
     filter 0.14s ease,
     visibility 0s linear 0.22s;
+}
+
+/* --- Tab line (the selection in playing order) -----------------------------*/
+/* Sized in cqw against the harp's own width, so the ~24 keys a 7-note scale
+   needs always fit one line — and so the keys shrink together with the harp
+   when fitHarp() scales it down. Mirrored by the same fractions in exporter.js. */
+.scale-tab {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.58cqw;
+  margin-top: 2.1cqw;
+}
+.scale-tab[hidden] { display: none; }
+/* Column per key: the stretch keeps the key and its note name on the same box,
+   so the name is always exactly below the key it belongs to. */
+.tab-key { display: flex; flex-direction: column; }
+.tab-name {
+  margin-top: 0.35cqw;
+  text-align: center;
+  font-size: 1.15cqw;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--muted);
+}
+.box.mini {
+  min-width: 2.8cqw;
+  height: 3.6cqw;
+  padding: 0 0.66cqw;
+  font-size: 1.45cqw;
+  font-weight: 700;
+  border-radius: 0.75cqw;
+  white-space: nowrap; /* "-2 / 3" stays on one line */
 }
 
 /* --- Toggles (animated switches) ------------------------------------------*/

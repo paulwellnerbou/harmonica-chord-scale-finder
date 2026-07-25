@@ -1,5 +1,5 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
-import { buildHarp, KEY_ORDER } from './harmonica.js';
+import { buildHarp, KEY_ORDER, playableNotes, tabLine } from './harmonica.js';
 import { playNote, playSequence } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
@@ -184,7 +184,39 @@ function renderHarp() {
     if (cell.overdraw) grid.appendChild(makeBox(cell.overdraw));
   }
 
-  applyVisibility(grid);
+  applyVisibility();
+}
+
+// The matching notes as a line of small tab keys ("1 -1' -1 -2'' -2 / 3 …"),
+// low to high — the order you'd actually play them.
+function renderTab() {
+  const row = document.getElementById('scale-tab');
+  const line = tabLine(matchedNotes());
+  row.hidden = line.length === 0;
+  row.innerHTML = '';
+  line.forEach((k) => {
+    // Key and note name share one column, so the name can never drift out of
+    // alignment with the key above it.
+    const cell = document.createElement('div');
+    cell.className = 'tab-key';
+
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = `box mini ${classForType(k.notes[0].type)} ${highlightFor(k.pc, state.parsed, state.triad)}`;
+    el.textContent = k.text;
+    const what = `${k.notes[0].name} · ${k.notes.map((n) => `hole ${n.hole} ${labelForType(n)}`).join(' or ')}`;
+    el.title = what;
+    el.setAttribute('aria-label', what); // the tab text alone reads poorly aloud
+    el.addEventListener('click', () => playNote(k.midi));
+    cell.appendChild(el);
+
+    const name = document.createElement('span');
+    name.className = 'tab-name';
+    name.textContent = withMusicAccidentals(k.notes[0].name);
+    cell.appendChild(name);
+
+    row.appendChild(cell);
+  });
 }
 
 // Scale the harp down to fit narrow viewports instead of overflowing/scrolling.
@@ -193,23 +225,29 @@ function fitHarp() {
   const fit = document.querySelector('.harp-fit');
   const area = document.querySelector('.harp-area');
   const harp = document.getElementById('harp');
-  if (!fit || !area || !harp) return;
+  const tab = document.getElementById('scale-tab');
+  if (!fit || !area || !harp || !tab) return;
   const px = (v) => parseFloat(v) || 0;
   const areaCs = getComputedStyle(area);
   const gutters = px(areaCs.paddingLeft) + px(areaCs.paddingRight); // side-label gutters
   const natW = (px(getComputedStyle(harp).minWidth) || 628) + gutters;
   const avail = fit.clientWidth;
+  if (!avail) return; // laid out at zero width (hidden tab/pane) — keep the last fit
   if (avail < natW - 0.5) {
     const scale = avail / natW;
-    area.style.transform = 'none';
     area.style.width = `${natW}px`;
-    const h = area.offsetHeight;
     area.style.transformOrigin = 'top left';
     area.style.transform = `scale(${scale})`;
-    // clientWidth excludes padding; add the wrapper's vertical padding back to the height.
+    // Only the tab line has to be measured (its height depends on how many keys
+    // wrap); the harp's own rows come from --harp-h so the wrapper keeps
+    // tracking the row-collapse animation. Measured after the width is set, so
+    // the tab line is laid out at its natural size.
+    const tabH = tab.hidden ? 0 : tab.offsetHeight + px(getComputedStyle(tab).marginTop);
+    fit.style.setProperty('--tab-h', `${tabH}px`);
+    // clientWidth excludes padding; add the wrapper's own back to the height.
     const fitCs = getComputedStyle(fit);
     const padY = px(fitCs.paddingTop) + px(fitCs.paddingBottom);
-    fit.style.height = `${h * scale + padY}px`;
+    fit.style.height = `calc(var(--harp-h) * ${scale} + ${padY}px)`;
   } else {
     area.style.width = '';
     area.style.transform = '';
@@ -226,11 +264,13 @@ window.addEventListener('resize', () => {
 
 // Show/hide bends & overblows purely in CSS so they fade in and out instead of
 // popping. Kept off the render path so it never rebuilds the harp mid-animation.
-function applyVisibility(grid = document.getElementById('harp')) {
-  grid.classList.toggle('hide-draw-bend', !state.showDrawBends);
-  grid.classList.toggle('hide-blow-bend', !state.showBlowBends);
-  grid.classList.toggle('hide-overblow', !state.showOverblow);
-  grid.classList.toggle('hide-overdraw', !state.showOverdraw);
+// The classes sit on the fit wrapper because the collapsing row heights they
+// drive are also read by the side labels and the wrapper's own height.
+function applyVisibility(fit = document.querySelector('.harp-fit')) {
+  fit.classList.toggle('hide-draw-bend', !state.showDrawBends);
+  fit.classList.toggle('hide-blow-bend', !state.showBlowBends);
+  fit.classList.toggle('hide-overblow', !state.showOverblow);
+  fit.classList.toggle('hide-overdraw', !state.showOverdraw);
 }
 
 // Root note exactly as the user spelled it (keeps F# from becoming Gb), or null.
@@ -319,31 +359,27 @@ function renderInfo() {
       <span class="sw miss"></span>unreachable (✕) · ° = needs overblow / overdraw</p>`;
 }
 
-// Unique, ascending MIDI notes on the current harp that match the query and are
-// actually visible under the current toggles — what the Play button will sound.
-function matchedMidis() {
+// Notes on the current harp that match the query and are visible under the
+// current toggles, ascending — the tab line, and what the Play button sounds.
+function matchedNotes() {
   if (!state.parsed) return [];
-  const harp = buildHarp(state.key);
-  const out = [];
-  for (let h = 1; h <= 10; h++) {
-    const c = harp[h];
-    const pool = [c.blow, c.draw];
-    if (state.showDrawBends) pool.push(...c.drawBends);
-    if (state.showBlowBends) pool.push(...c.blowBends);
-    if (state.showOverblow) pool.push(c.overblow);
-    if (state.showOverdraw) pool.push(c.overdraw);
-    pool.forEach((n) => { if (n && state.parsed.pcs.includes(n.pc)) out.push(n.midi); });
-  }
-  return [...new Set(out)].sort((a, b) => a - b);
+  return playableNotes(buildHarp(state.key), state).filter((n) => state.parsed.pcs.includes(n.pc));
+}
+
+// Unique pitches of the above; already ascending, so the Set keeps that order.
+function matchedMidis() {
+  return [...new Set(matchedNotes().map((n) => n.midi))];
 }
 
 function render() {
   renderHarp();
+  renderTab();
   renderInfo();
   const titleAscii = titleText();
   document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
   document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Chord & Scale Finder`;
   document.getElementById('play').disabled = matchedMidis().length === 0;
+  fitHarp(); // the tab line's height feeds the scaled wrapper
   syncURL();
 }
 
@@ -370,8 +406,10 @@ function initControls() {
   // refresh (rebuilding the harp here would cancel the fade).
   const onToggle = () => {
     applyVisibility();
+    renderTab();
     renderInfo();
     document.getElementById('play').disabled = matchedMidis().length === 0;
+    fitHarp();
     syncURL();
   };
   [
@@ -569,6 +607,5 @@ function initImageButton() {
 
 const initialQuery = applyURLState(); // seed key + toggles from the URL
 initControls();                       // build controls reflecting that state
-setQuery(initialQuery);               // apply the query, render, and sync the URL
-fitHarp();                            // scale the harp to the current width
+setQuery(initialQuery);               // apply the query, render, fit, and sync the URL
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHarp);
