@@ -120,10 +120,17 @@ document.documentElement.style.setProperty('--ring-ms', `${NOTE_MS}ms`);
 
 let ringTimer = null;
 function ring(selector) {
-  document.querySelectorAll('.is-sounding').forEach((el) => el.classList.remove('is-sounding'));
+  const lit = new Set(document.querySelectorAll('.is-sounding'));
+  lit.forEach((el) => el.classList.remove('is-sounding'));
   const cards = [...document.querySelectorAll(selector)];
-  void document.body.offsetWidth; // commit the removal, so re-clicking a note restarts the animation
-  cards.forEach((el) => el.classList.add('is-sounding'));
+  cards.forEach((el) => {
+    el.classList.add('is-sounding');
+    // Taken off and put back within one task, the class never changes as far as
+    // CSS is concerned, so the animation would carry on mid-flight. Rewind it
+    // instead — only for the cards that were already ringing, and without the
+    // forced layout that flushing the style between the two changes would cost.
+    if (lit.has(el)) el.getAnimations({ subtree: true }).forEach((a) => { a.currentTime = 0; });
+  });
   clearTimeout(ringTimer);
   ringTimer = setTimeout(() => cards.forEach((el) => el.classList.remove('is-sounding')), NOTE_MS);
 }
