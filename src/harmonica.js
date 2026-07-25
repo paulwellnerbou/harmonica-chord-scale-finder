@@ -70,6 +70,48 @@ export function buildHarp(key) {
   return map;
 }
 
+// Standard harp tab: blow holes are bare numbers, draw holes take a leading
+// minus, every bent semitone adds an apostrophe and over-notes a degree sign.
+const DRAW_TYPES = ['draw', 'draw-bend', 'overdraw'];
+function tabNotation(n) {
+  const base = `${DRAW_TYPES.includes(n.type) ? '-' : ''}${n.hole}`;
+  if (n.depth) return base + "'".repeat(n.depth);
+  if (n.type === 'overblow' || n.type === 'overdraw') return `${base}°`;
+  return base;
+}
+
+// One tab key per distinct pitch, in playing order. Where two holes make the
+// same note (2 draw and 3 blow) they share a key labelled "-2 / 3".
+export function tabLine(notes) {
+  const line = [];
+  for (const n of notes) {
+    const prev = line[line.length - 1];
+    if (prev && prev.midi === n.midi) {
+      prev.notes.push(n);
+      prev.text += ` / ${tabNotation(n)}`;
+    } else {
+      line.push({ midi: n.midi, pc: n.pc, notes: [n], text: tabNotation(n) });
+    }
+  }
+  return line;
+}
+
+// Every note reachable with the given techniques enabled, in the order a player
+// would run them: ascending pitch, lower hole first where two holes share a
+// pitch (2 draw before 3 blow) — so the same pitch can appear twice.
+export function playableNotes(harp, { showDrawBends, showBlowBends, showOverblow, showOverdraw }) {
+  const out = [];
+  for (let h = 1; h <= 10; h++) {
+    const c = harp[h];
+    out.push(c.blow, c.draw);
+    if (showDrawBends) out.push(...c.drawBends);
+    if (showBlowBends) out.push(...c.blowBends);
+    if (showOverblow && c.overblow) out.push(c.overblow);
+    if (showOverdraw && c.overdraw) out.push(c.overdraw);
+  }
+  return out.sort((a, b) => a.midi - b.midi || a.hole - b.hole);
+}
+
 // Flatten a harp into a single list of notes (handy for lookups / audio).
 export function allNotes(harp) {
   const out = [];

@@ -3,13 +3,22 @@
 // left transparent, i.e. without the page's blue backdrop.
 
 import { degreeOf, highlightFor, withMusicAccidentals } from './theory.js';
-import { buildHarp } from './harmonica.js';
+import { buildHarp, playableNotes, tabLine } from './harmonica.js';
 
 const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, TITLE_GAP = 12;
 const GUTTER = 30; // side gutters holding the vertical BLOW / DRAW labels
 const ROW_H = [0, 50, 50, 70, 38, 70, 50, 50, 50]; // 1-indexed: rows 1..8
+const GRID_W = 10 * COL_W + 9 * GAP_X;
+// Tab line below the harp, at the same fractions of the harp width as the cqw
+// values in styles.css — so a full 7-note scale fits one line here too.
+const cq = (n) => Math.round(GRID_W * n / 100);
+const TAB_TOP = cq(2.1), TAB_H = cq(3.6), TAB_GAP = cq(0.58), TAB_PAD_X = cq(0.66),
+  TAB_MIN_W = cq(2.8), TAB_RADIUS = cq(0.75), TAB_NAME_TOP = cq(0.35), TAB_NAME_H = cq(1.4);
+const TAB_ROW_H = TAB_H + TAB_NAME_TOP + TAB_NAME_H; // key + the note name under it
 
 const FONT = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+const TAB_FONT = `700 ${cq(1.45)}px ${FONT}`;
+const TAB_NAME_FONT = `600 ${cq(1.15)}px ${FONT}`;
 const INK = [34, 27, 18]; // --box-ink, also drawn at reduced alpha — see inkAlpha
 // Mirrors the CSS custom properties in styles.css so a copied image matches the
 // on-screen (bright) instrument. The export keeps a transparent background.
@@ -55,16 +64,48 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// The matching notes as tab keys, measured and wrapped into centered lines of
+// at most `maxW`. Returns [] when nothing is selected.
+function layoutTab(parsed, harp, show, maxW) {
+  if (!parsed) return [];
+  const measure = document.createElement('canvas').getContext('2d');
+  const textW = (s, font) => { measure.font = font; return Math.ceil(measure.measureText(s).width); };
+  const keys = tabLine(playableNotes(harp, show).filter((n) => parsed.pcs.includes(n.pc)))
+    .map((k) => {
+      const name = withMusicAccidentals(k.notes[0].name);
+      // Widest of key label / note name, mirroring the stretched column on screen.
+      const w = Math.max(TAB_MIN_W, textW(k.text, TAB_FONT) + TAB_PAD_X * 2, textW(name, TAB_NAME_FONT));
+      return { ...k, name, w };
+    });
+
+  const lines = [];
+  let line = null;
+  for (const k of keys) {
+    if (line && line.w + TAB_GAP + k.w > maxW) line = null;
+    if (!line) { line = { keys: [], w: -TAB_GAP }; lines.push(line); }
+    line.keys.push(k);
+    line.w += TAB_GAP + k.w;
+  }
+  return lines;
+}
+
 export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title }) {
   const harp = buildHarp(key);
+  const show = { showDrawBends, showBlowBends, showOverblow, showOverdraw };
 
+  // Rows whose only occupants are switched off collapse away — same as on screen,
+  // so the export doesn't carry a band of empty space under the title.
+  const rowShown = [false, showBlowBends, showBlowBends || showOverblow, true, true, true,
+    showDrawBends || showOverdraw, showDrawBends, showDrawBends];
   const rowTop = [0, 0];
   let y = PAD + TITLE_H + TITLE_GAP;
-  for (let r = 1; r <= 8; r++) { rowTop[r] = y; y += ROW_H[r] + GAP_Y; }
+  for (let r = 1; r <= 8; r++) { rowTop[r] = y; if (rowShown[r]) y += ROW_H[r] + GAP_Y; }
+  const gridBottom = y - GAP_Y; // last visible row's bottom, without its trailing gap
 
-  const gridW = 10 * COL_W + 9 * GAP_X;
-  const width = PAD * 2 + GUTTER * 2 + gridW;
-  const height = rowTop[8] + ROW_H[8] + PAD;
+  const width = PAD * 2 + GUTTER * 2 + GRID_W;
+  const tabLines = layoutTab(parsed, harp, show, GRID_W);
+  const tabH = tabLines.length ? TAB_TOP + tabLines.length * (TAB_ROW_H + TAB_GAP) - TAB_GAP : 0;
+  const height = gridBottom + tabH + PAD;
 
   const dpr = 2; // retina-crisp export
   const canvas = document.createElement('canvas');
@@ -90,7 +131,7 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   ctx.fillStyle = vGradient(panelY, panelY + panelH, COLORS.plate);
   ctx.strokeStyle = COLORS.plateEdge;
   ctx.lineWidth = 1.5;
-  roundRect(ctx, gridLeft - 4, panelY, gridW + 8, panelH, 16);
+  roundRect(ctx, gridLeft - 4, panelY, GRID_W + 8, panelH, 16);
   ctx.fill();
   ctx.stroke();
 
@@ -98,7 +139,7 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   const barH = 30;
   const barY = rowTop[4] + (ROW_H[4] - barH) / 2;
   ctx.fillStyle = vGradient(barY, barY + barH, COLORS.comb);
-  roundRect(ctx, gridLeft - 6, barY, gridW + 12, barH, 8); // matches .number-bar border-radius
+  roundRect(ctx, gridLeft - 6, barY, GRID_W + 12, barH, 8); // matches .number-bar border-radius
   ctx.fill();
 
   const drawBox = (n, x) => {
@@ -196,6 +237,34 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   for (const cx of [PAD + GUTTER / 2, width - PAD - GUTTER / 2]) {
     vlabel('BLOW', cx, blowY, true);
     vlabel('DRAW', cx, drawY, false);
+  }
+
+  // Tab line(s): the same keys as the row under the harp on screen.
+  let tabY = gridBottom + TAB_TOP;
+  for (const line of tabLines) {
+    let tabX = (width - line.w) / 2;
+    for (const k of line.keys) {
+      const bucket = highlightFor(k.pc, parsed, triad); // always a hit here
+      const [fill, stroke] = COLORS[bucket];
+      ctx.fillStyle = fill;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = bucket === 'tone' ? 1.5 : 2.5;
+      roundRect(ctx, tabX, tabY, k.w, TAB_H, TAB_RADIUS);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = COLORS.ink;
+      ctx.font = TAB_FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(k.text, tabX + k.w / 2, tabY + TAB_H / 2 + 1);
+
+      ctx.font = TAB_NAME_FONT;
+      ctx.fillStyle = inkAlpha(0.62);
+      ctx.fillText(k.name, tabX + k.w / 2, tabY + TAB_H + TAB_NAME_TOP + TAB_NAME_H / 2);
+      tabX += k.w + TAB_GAP;
+    }
+    tabY += TAB_ROW_H + TAB_GAP;
   }
 
   // Title (harp key + chord/scale).
