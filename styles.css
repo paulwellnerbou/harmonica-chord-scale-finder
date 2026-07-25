@@ -736,11 +736,17 @@ body::after {
 .card-share svg { width: 15px; height: 15px; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+/* Each chip is a button that sounds its note, like the holes on the harp. */
 .chip {
   display: inline-flex; align-items: baseline; gap: 5px;
   padding: 5px 12px; border-radius: 999px;
-  font-weight: 700; border: 1.5px solid;
+  font: inherit; font-weight: 700; border: 1.5px solid;
+  background: none; cursor: pointer;
+  transition: translate 0.1s ease, box-shadow 0.15s ease;
 }
+.chip:hover { translate: 0 -2px; box-shadow: 0 7px 14px -7px rgba(0, 0, 0, 0.55); }
+.chip:active { translate: 0 0; box-shadow: none; }
+.chip:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .chip em { font-style: normal; font-size: 0.7rem; font-weight: 600; opacity: 0.72; }
 .chip.match { background: var(--match-fill); border-color: var(--match); color: #12572f; }
 .chip.tone { background: var(--tone-fill); border-color: var(--tone); color: #326349; }

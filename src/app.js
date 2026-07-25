@@ -267,9 +267,9 @@ function renderInfo() {
     const unrecognized = state.query.trim() !== '';
     info.innerHTML = unrecognized
       ? `<p class="hint warn">Couldn't read <strong>“${escapeHtml(state.query.trim())}”</strong>.
-         Try a chord like <code>Am7</code> / <code>F#9</code> or a scale like <code>C Blues</code> / <code>D Dorian</code>.</p>`
+         Try a chord like <code>Am7</code> / <code>F#9</code> or a scale like <code>G Blues</code> / <code>D Dorian</code>.</p>`
       : `<p class="hint">Type a chord (<code>C</code>, <code>Am7</code>, <code>E7</code>, <code>F#9</code>)
-         or a scale (<code>C Blues</code>, <code>Em Pentatonic</code>, <code>D Dorian</code>) above.</p>`;
+         or a scale (<code>G Blues</code>, <code>Em Pentatonic</code>, <code>D Dorian</code>) above.</p>`;
     return;
   }
   const title = selectionName(); // exact same name as the heading above the harp
@@ -294,6 +294,12 @@ function renderInfo() {
     [c.overblow, c.overdraw].forEach((n) => n && overOnly.add(n.pc));
   }
 
+  // Chips sound one octave laid out from the root up, anchored at the first
+  // root at or above the harp's lowest reed — so clicking along the row plays a
+  // rising scale in the harp's own register (also for unreachable notes).
+  const low = harp[1].blow;
+  const rootMidi = low.midi + (((p.root - low.pc) % 12) + 12) % 12;
+
   const chips = p.pcs
     .slice()
     .sort((a, b) => ((a - p.root + 12) % 12) - ((b - p.root + 12) % 12))
@@ -303,7 +309,9 @@ function renderInfo() {
       const bucket = highlightFor(pc, p, state.triad); // 'root' | 'match' | 'tone'
       const cls = !reach ? 'chip miss' : `chip ${bucket}`;
       const flag = !reach ? ' ✕' : onlyOver ? ' °' : '';
-      return `<span class="${cls}">${withMusicAccidentals(PC_NAMES_FLAT[pc])}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</span>`;
+      const name = withMusicAccidentals(PC_NAMES_FLAT[pc]);
+      const midi = rootMidi + ((((pc - p.root) % 12) + 12) % 12);
+      return `<button type="button" class="${cls}" data-midi="${midi}" title="Play ${name}">${name}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</button>`;
     })
     .join('');
 
@@ -391,6 +399,12 @@ function initControls() {
 
   document.querySelectorAll('.example').forEach((btn) => {
     btn.addEventListener('click', () => setQuery(btn.dataset.q));
+  });
+
+  // Delegated: the note chips are rebuilt on every render.
+  document.getElementById('info').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (chip) playNote(Number(chip.dataset.midi));
   });
 
   document.getElementById('play').addEventListener('click', playMatched);
