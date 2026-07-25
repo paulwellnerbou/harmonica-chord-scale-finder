@@ -10,6 +10,7 @@ const GUTTER = 30; // side gutters holding the vertical BLOW / DRAW labels
 const ROW_H = [0, 50, 50, 70, 38, 70, 50, 50, 50]; // 1-indexed: rows 1..8
 
 const FONT = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+const INK = [34, 27, 18]; // --box-ink, also drawn at reduced alpha — see inkAlpha
 // Mirrors the CSS custom properties in styles.css so a copied image matches the
 // on-screen (bright) instrument. The export keeps a transparent background.
 const COLORS = {
@@ -23,8 +24,9 @@ const COLORS = {
   plate: ['#f4ecdd', '#e2d8c4'],
   plateEdge: '#c9ba9d',
   comb: ['#2c2720', '#16110c'],
-  ink: '#221b12',
+  ink: `rgb(${INK})`,
 };
+const inkAlpha = (a) => `rgba(${INK}, ${a})`;
 const TAG = { overblow: 'OB', overdraw: 'OD' };
 
 // Same row/style mapping as the DOM renderer (see app.js).
@@ -119,21 +121,32 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
     ctx.fill();
     ctx.stroke();
 
+    // Over-bar, mirroring .box.over::before at the export's larger scale (its
+    // note type is 21px against the page's 18.4px, so the CSS 28x2.5 grows too).
+    if (baseStyle(n.type) === 'over') {
+      const barW = 32;
+      ctx.fillStyle = inkAlpha(0.8);
+      roundRect(ctx, x + (COL_W - barW) / 2, top + 7, barW, 3, 1.5);
+      ctx.fill();
+    }
+
     ctx.fillStyle = COLORS.ink;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const big = n.type === 'blow' || n.type === 'draw';
     ctx.font = `700 ${big ? 25 : 21}px ${FONT}`;
-    ctx.fillText(withMusicAccidentals(n.name), x + COL_W / 2, top + h / 2 - (hit ? 8 : 0));
+    ctx.fillText(withMusicAccidentals(n.name), x + COL_W / 2, top + h / 2);
 
     if (hit) {
       ctx.font = `700 11px ${FONT}`;
-      ctx.fillStyle = 'rgba(34,27,18,0.66)';
-      ctx.fillText(withMusicAccidentals(degreeOf(n.pc, parsed.root)), x + COL_W / 2, top + h / 2 + 12);
+      ctx.fillStyle = inkAlpha(0.62);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(withMusicAccidentals(degreeOf(n.pc, parsed.root)), x + COL_W - 6, top + h - 4);
     }
     if (TAG[n.type]) {
       ctx.font = `800 9px ${FONT}`;
-      ctx.fillStyle = 'rgba(200,128,31,0.9)';
+      ctx.fillStyle = inkAlpha(0.5);
       ctx.textAlign = 'right';
       ctx.textBaseline = 'top';
       ctx.fillText(TAG[n.type], x + COL_W - 6, top + 5);
