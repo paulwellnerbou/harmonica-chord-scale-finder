@@ -119,21 +119,31 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
     ctx.fill();
     ctx.stroke();
 
+    // Over-bar, mirroring .box.over::before.
+    if (baseStyle(n.type) === 'over') {
+      const barW = 32;
+      ctx.fillStyle = 'rgba(34,27,18,0.8)';
+      roundRect(ctx, x + (COL_W - barW) / 2, top + 7, barW, 3, 1.5);
+      ctx.fill();
+    }
+
     ctx.fillStyle = COLORS.ink;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const big = n.type === 'blow' || n.type === 'draw';
     ctx.font = `700 ${big ? 25 : 21}px ${FONT}`;
-    ctx.fillText(withMusicAccidentals(n.name), x + COL_W / 2, top + h / 2 - (hit ? 8 : 0));
+    ctx.fillText(withMusicAccidentals(n.name), x + COL_W / 2, top + h / 2);
 
     if (hit) {
       ctx.font = `700 11px ${FONT}`;
-      ctx.fillStyle = 'rgba(34,27,18,0.66)';
-      ctx.fillText(withMusicAccidentals(degreeOf(n.pc, parsed.root)), x + COL_W / 2, top + h / 2 + 12);
+      ctx.fillStyle = 'rgba(34,27,18,0.62)';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(withMusicAccidentals(degreeOf(n.pc, parsed.root)), x + COL_W - 6, top + h - 4);
     }
     if (TAG[n.type]) {
       ctx.font = `800 9px ${FONT}`;
-      ctx.fillStyle = 'rgba(200,128,31,0.9)';
+      ctx.fillStyle = 'rgba(34,27,18,0.5)';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'top';
       ctx.fillText(TAG[n.type], x + COL_W - 6, top + 5);
