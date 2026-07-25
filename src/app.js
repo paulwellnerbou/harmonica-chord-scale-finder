@@ -1,6 +1,6 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
 import { buildHarp, KEY_ORDER, playableNotes, tabLine } from './harmonica.js';
-import { playNote, playSequence } from './audio.js';
+import { playNote, playSequence, stopSequence, primeAudio } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
 // Corner-control glyphs. The play button swaps to pulsing bars while sounding;
@@ -307,9 +307,9 @@ function renderInfo() {
     const unrecognized = state.query.trim() !== '';
     info.innerHTML = unrecognized
       ? `<p class="hint warn">Couldn't read <strong>“${escapeHtml(state.query.trim())}”</strong>.
-         Try a chord like <code>Am7</code> / <code>F#9</code> or a scale like <code>C Blues</code> / <code>D Dorian</code>.</p>`
+         Try a chord like <code>Am7</code> / <code>F#9</code> or a scale like <code>G Blues</code> / <code>D Dorian</code>.</p>`
       : `<p class="hint">Type a chord (<code>C</code>, <code>Am7</code>, <code>E7</code>, <code>F#9</code>)
-         or a scale (<code>C Blues</code>, <code>Em Pentatonic</code>, <code>D Dorian</code>) above.</p>`;
+         or a scale (<code>G Blues</code>, <code>Em Pentatonic</code>, <code>D Dorian</code>) above.</p>`;
     return;
   }
   const title = selectionName(); // exact same name as the heading above the harp
@@ -334,6 +334,12 @@ function renderInfo() {
     [c.overblow, c.overdraw].forEach((n) => n && overOnly.add(n.pc));
   }
 
+  // Chips sound one octave laid out from the root up, anchored at the first
+  // root at or above the harp's lowest reed — so clicking along the row plays a
+  // rising scale in the harp's own register (also for unreachable notes).
+  const low = harp[1].blow;
+  const rootMidi = low.midi + (((p.root - low.pc) % 12) + 12) % 12;
+
   const chips = p.pcs
     .slice()
     .sort((a, b) => ((a - p.root + 12) % 12) - ((b - p.root + 12) % 12))
@@ -343,7 +349,9 @@ function renderInfo() {
       const bucket = highlightFor(pc, p, state.triad); // 'root' | 'match' | 'tone'
       const cls = !reach ? 'chip miss' : `chip ${bucket}`;
       const flag = !reach ? ' ✕' : onlyOver ? ' °' : '';
-      return `<span class="${cls}">${withMusicAccidentals(PC_NAMES_FLAT[pc])}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</span>`;
+      const name = withMusicAccidentals(PC_NAMES_FLAT[pc]);
+      const midi = rootMidi + ((((pc - p.root) % 12) + 12) % 12);
+      return `<button type="button" class="${cls}" data-midi="${midi}" title="Play ${name}">${name}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</button>`;
     })
     .join('');
 
@@ -431,26 +439,62 @@ function initControls() {
     btn.addEventListener('click', () => setQuery(btn.dataset.q));
   });
 
+  // Delegated: the note chips are rebuilt on every render.
+  document.getElementById('info').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (chip) playNote(Number(chip.dataset.midi));
+  });
+
   document.getElementById('play').addEventListener('click', playMatched);
 
+  initAudioPriming();
   initImageButton();
 }
 
+// Browsers only let audio start from a user gesture, so wake the context on the
+// first one anywhere on the page — by the time Play is clicked it is running.
+function initAudioPriming() {
+  const prime = () => {
+    primeAudio();
+    window.removeEventListener('pointerdown', prime);
+    window.removeEventListener('keydown', prime);
+  };
+  window.addEventListener('pointerdown', prime);
+  window.addEventListener('keydown', prime);
+}
+
 // Play the highlighted notes and show pulsing bars on the button until they've
-// finished sounding (playback itself can't be stopped mid-flight).
+// finished sounding; while they do, the button stops playback instead.
+const PLAY_LABEL = 'Play the highlighted notes';
+const STOP_LABEL = 'Stop playback';
 let playTimer = null;
+let playing = false;
 function playMatched() {
   const btn = document.getElementById('play');
+  if (playing) { endPlayback(btn); return; }
   const midis = matchedMidis();
   if (!midis.length) return;
   const dur = playSequence(midis); // ms until the last note stops ringing
   clearTimeout(playTimer);
+  playing = true;
   btn.classList.add('is-playing');
   btn.innerHTML = PLAYING_ICON;
-  playTimer = setTimeout(() => {
-    btn.classList.remove('is-playing');
-    btn.innerHTML = PLAY_ICON;
-  }, dur);
+  setPlayLabel(btn, STOP_LABEL);
+  playTimer = setTimeout(() => endPlayback(btn), dur);
+}
+
+function endPlayback(btn) {
+  clearTimeout(playTimer);
+  stopSequence();
+  playing = false;
+  btn.classList.remove('is-playing');
+  btn.innerHTML = PLAY_ICON;
+  setPlayLabel(btn, PLAY_LABEL);
+}
+
+function setPlayLabel(btn, label) {
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
 }
 
 // Light / dark theme. The theme is set pre-paint by an inline script; here we

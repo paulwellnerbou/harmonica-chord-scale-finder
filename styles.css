@@ -24,7 +24,6 @@
   /* Signature brass accent — the reed metal of a real harp. */
   --brass: #e8a53f;
   --brass-lit: #f4bd60;
-  --brass-deep: #c8801f;
   --brass-soft: rgba(232, 165, 63, 0.14);
 
   /* Solid CTA brass — same in both themes so buttons/switches stay vivid. */
@@ -96,7 +95,6 @@
 
   --brass: #a9670f;
   --brass-lit: #c9821b;
-  --brass-deep: #8a520a;
   --brass-soft: rgba(169, 103, 15, 0.12);
 
   --line: rgba(74, 56, 26, 0.16);
@@ -568,11 +566,16 @@ body::after {
 .box:active { translate: 0 0; }
 .box:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .box .note { font-size: 1.15rem; font-weight: 700; line-height: 1; }
-.box .deg { font-size: 0.62rem; font-weight: 700; opacity: 0.62; margin-top: 3px; }
+/* Corner-pinned so the note name sits at the same optical centre whether or not
+   a degree is shown. */
+.box .deg {
+  position: absolute; right: 5px; bottom: 3px;
+  font-size: 0.62rem; font-weight: 700; opacity: 0.62;
+}
 .box .tag {
   position: absolute; top: 3px; right: 4px;
   font-size: 0.5rem; font-weight: 800; letter-spacing: 0.03em;
-  color: var(--brass-deep); opacity: 0.85;
+  opacity: 0.5;
 }
 
 /* The row gap lives inside the track (see .harp-fit), on the side facing the comb. */
@@ -583,6 +586,22 @@ body::after {
 .box.reed .note { font-size: 1.35rem; }
 .box.bend { background: var(--bend-fill); border-color: var(--bend-border); }
 .box.over { background: var(--over-fill); border-color: var(--over-border); }
+/* Over-bar: a line drawn *over* the note marks overblows/overdraws apart from
+   bends. Ink-coloured, so unlike the fill and border it survives the highlight
+   states — and greyscale. */
+.box.over::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 50%;
+  translate: -50% 0;
+  width: 28px; height: 2.5px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.8;
+}
+/* On a tab key the "°" in the label already says overblow/overdraw, and the bar
+   would land on top of it. */
+.box.mini.over::before { content: none; }
 
 /* Highlight states — lit keys glow warmly off the dark stage. */
 .box.match {
@@ -798,11 +817,17 @@ body::after {
 .card-share svg { width: 15px; height: 15px; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+/* Each chip is a button that sounds its note, like the holes on the harp. */
 .chip {
   display: inline-flex; align-items: baseline; gap: 5px;
   padding: 5px 12px; border-radius: 999px;
-  font-weight: 700; border: 1.5px solid;
+  font: inherit; font-weight: 700; border: 1.5px solid;
+  background: none; cursor: pointer;
+  transition: translate 0.1s ease, box-shadow 0.15s ease;
 }
+.chip:hover { translate: 0 -2px; box-shadow: 0 7px 14px -7px rgba(0, 0, 0, 0.55); }
+.chip:active { translate: 0 0; box-shadow: none; }
+.chip:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .chip em { font-style: normal; font-size: 0.7rem; font-weight: 600; opacity: 0.72; }
 .chip.match { background: var(--match-fill); border-color: var(--match); color: #12572f; }
 .chip.tone { background: var(--tone-fill); border-color: var(--tone); color: #326349; }
