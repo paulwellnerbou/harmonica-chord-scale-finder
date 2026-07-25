@@ -665,13 +665,13 @@ body::after {
 
 /* The spark is the card's own border colour lighting up, so it never reads as a
    stray accent laid over the highlight palette. Ordered so the highlight states
-   win over the base note type, as they do for the border itself. */
-/* A plain key's border is barely darker than its fill, so that one is deepened —
-   at its own colour the spark would be invisible. */
-.box.reed { --ring: color-mix(in srgb, var(--reed-border) 62%, var(--box-ink)); }
+   win over the base note type, as they do for the border itself. Two borders are
+   too washed out to spark with as they stand, and take the nearest solid tone of
+   their own family instead. */
+.box.reed { --ring: color-mix(in srgb, var(--reed-border) 62%, var(--box-ink)); } /* barely darker than its own fill */
 .box.bend { --ring: var(--bend-border); }
 .box.over { --ring: var(--over-border); }
-.chip.miss { --ring: var(--faint); }
+.chip.miss { --ring: var(--faint); } /* its --line border is near-transparent */
 .box.tone, .chip.tone { --ring: var(--tone); }
 .box.match, .chip.match { --ring: var(--match); }
 .box.root, .chip.root { --ring: var(--root); }
