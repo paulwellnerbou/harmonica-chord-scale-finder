@@ -687,14 +687,14 @@ function initKeySelect() {
     // How far the list may run before it hits the edge of the window; the CSS
     // caps that at all 12 keys. It drops down unless the list overruns the room
     // below and there is more of it above — a phone held landscape leaves next
-    // to nothing under the button. The floor keeps a couple of rows in view
-    // where neither side can hold the whole list.
+    // to nothing under the button. Whatever is left over shows as many rows as
+    // it holds and scrolls the rest, rather than running off-screen.
     const { top, bottom } = btn.getBoundingClientRect();
     const below = window.innerHeight - bottom - 22;
     const above = top - 22;
     const up = below < Math.min(menu.scrollHeight, above);
     menu.classList.toggle('above', up);
-    menu.style.setProperty('--menu-room', `${Math.max(96, Math.round(up ? above : below))}px`);
+    menu.style.setProperty('--menu-room', `${Math.max(0, Math.round(up ? above : below))}px`);
     menu.classList.add('open');
     btn.setAttribute('aria-expanded', 'true');
     setActive(KEY_ORDER.indexOf(state.key));
