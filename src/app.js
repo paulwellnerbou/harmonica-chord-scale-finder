@@ -131,8 +131,14 @@ const BY_SEQUENCE = 'sequence';
 // an earlier ring has to outlive the click that follows it.
 function ring(selector, ms = NOTE_MS, by = BY_CLICK) {
   const cards = document.querySelectorAll(selector);
+  const ends = performance.now() + ms;
   cards.forEach((el) => {
+    // Two tones can sound on one card at once — a clicked note, and the scale
+    // passing through the same pitch — but it has only one ring to show them
+    // with, so the longer-running claim keeps it rather than the latest one.
+    if (el.classList.contains('is-sounding') && el._ringEnds > ends) return;
     el._ringBy = by;
+    el._ringEnds = ends;
     // Hand the audio timing to CSS so the animation runs exactly as long as the tone.
     el.style.setProperty('--ring-ms', `${ms}ms`);
     // Re-adding the class to a card that already has it is no change as far as
