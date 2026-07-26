@@ -671,7 +671,12 @@ function initSuggest() {
 
   const setActive = (i) => {
     activeIndex = i;
-    opts.forEach((el, idx) => el.classList.toggle('active', idx === i));
+    // Selection follows the active row: nothing here is chosen until you pick
+    // it, so aria-selected marks what the arrow keys are on.
+    opts.forEach((el, idx) => {
+      el.classList.toggle('active', idx === i);
+      el.setAttribute('aria-selected', String(idx === i));
+    });
     if (i < 0) { input.removeAttribute('aria-activedescendant'); return; }
     opts[i].scrollIntoView({ block: 'nearest' });
     input.setAttribute('aria-activedescendant', opts[i].id);
