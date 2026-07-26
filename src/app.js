@@ -377,7 +377,7 @@ function titleText() {
 // 1st position is the harp key, already in the title.
 function positionsText() {
   return positionKeys(state.key)
-    .map((p) => `${p.name} position: ${p.label}${p.nick ? ` (${p.nick})` : ''}`)
+    .map((p) => `${p.name} position ${p.label}${p.nick ? ` (${p.nick})` : ''}`)
     .join(' · ');
 }
 

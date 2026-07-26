@@ -34,18 +34,21 @@ export function parseNote(str) {
   return head.pc;
 }
 
-// Transpose a note name up by `n` perfect fifths, spelled the way a musician
-// would: the letter moves four steps per fifth and the accidental follows it, so
-// the fifth above B reads F# rather than the enharmonic Gb the flat-only
-// PC_NAMES_FLAT would give.
+// Transpose a note name by `n` perfect fifths (negative goes down), spelled the
+// way a musician would: the letter moves four steps per fifth and the accidental
+// follows it, so the fifth above B reads F# rather than the enharmonic Gb the
+// flat-only PC_NAMES_FLAT would give. Null for an unreadable name, or for one
+// whose fifth needs an accidental past the double — beyond what a name can say.
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const ACCIDENTAL_FOR = { 0: '', 1: '#', 2: '##', 10: 'bb', 11: 'b' };
+const mod = (a, n) => ((a % n) + n) % n;
 export function transposeFifths(name, n) {
   const s = name.trim();
   const head = parseNoteHead(s);
   if (!head) return null;
-  const letter = LETTERS[(LETTERS.indexOf(s[0].toUpperCase()) + 4 * n) % 7];
-  return letter + ACCIDENTAL_FOR[(((head.pc + 7 * n - LETTER_PC[letter]) % 12) + 12) % 12];
+  const letter = LETTERS[mod(LETTERS.indexOf(s[0].toUpperCase()) + 4 * n, 7)];
+  const accidental = ACCIDENTAL_FOR[mod(head.pc + 7 * n - LETTER_PC[letter], 12)];
+  return accidental == null ? null : letter + accidental;
 }
 
 // --- Chords -----------------------------------------------------------------
