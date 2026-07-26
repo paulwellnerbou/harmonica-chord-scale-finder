@@ -5,7 +5,7 @@
 import { degreeOf, highlightFor, withMusicAccidentals } from './theory.js';
 import { buildHarp, tabStrip } from './harmonica.js';
 
-const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, TITLE_GAP = 12;
+const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, SUB_H = 22, TITLE_GAP = 12;
 const GUTTER = 30; // side gutters holding the vertical BLOW / DRAW labels
 const ROW_H = [0, 50, 50, 70, 38, 70, 50, 50, 50]; // 1-indexed: rows 1..8
 const GRID_W = 10 * COL_W + 9 * GAP_X;
@@ -90,7 +90,7 @@ function layoutTabStrip(parsed, harp, show, maxW) {
   return rows;
 }
 
-export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title }) {
+export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title, subtitle }) {
   const harp = buildHarp(key);
   const show = { showDrawBends, showBlowBends, showOverblow, showOverdraw };
 
@@ -99,7 +99,7 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   const rowShown = [false, showBlowBends, showBlowBends || showOverblow, true, true, true,
     showDrawBends || showOverdraw, showDrawBends, showDrawBends];
   const rowTop = [0, 0];
-  let y = PAD + TITLE_H + TITLE_GAP;
+  let y = PAD + TITLE_H + (subtitle ? SUB_H : 0) + TITLE_GAP;
   for (let r = 1; r <= 8; r++) { rowTop[r] = y; if (rowShown[r]) y += ROW_H[r] + GAP_Y; }
   const gridBottom = y - GAP_Y; // last visible row's bottom, without its trailing gap
 
@@ -291,12 +291,17 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
     tabY += TAB_ROW_H + TAB_GAP;
   }
 
-  // Title (harp key + chord/scale).
+  // Title (harp key + chord/scale) and the position keys under it.
   ctx.fillStyle = COLORS.ink;
   ctx.font = `700 22px ${FONT}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(title, width / 2, PAD + TITLE_H / 2);
+  if (subtitle) {
+    ctx.font = `600 13px ${FONT}`;
+    ctx.fillStyle = inkAlpha(0.6);
+    ctx.fillText(subtitle, width / 2, PAD + TITLE_H + SUB_H / 2 - 2);
+  }
 
   return canvas;
 }

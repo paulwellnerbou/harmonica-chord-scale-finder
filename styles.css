@@ -396,11 +396,29 @@ body::after {
   font-optical-sizing: auto;
   font-weight: 600;
   color: var(--ink);
-  margin-bottom: 14px;
+  margin-bottom: 5px;
   padding: 0 54px; /* clear the corner play / image buttons */
   font-size: clamp(1.1rem, 2.4vw, 1.4rem);
   letter-spacing: 0.005em;
 }
+/* The 2nd / 3rd position keys, a quiet caption under the harp key. */
+.harp-positions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  column-gap: 9px;
+  row-gap: 1px;
+  margin-bottom: 13px;
+  padding: 0 54px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+/* Trailing separator, not leading: the line wraps between entries on narrow
+   screens, and a dot left behind on the first line reads as "continues" where
+   one carried onto the second reads as a bullet. */
+.harp-positions > span:not(:last-child)::after { content: "·"; margin-left: 9px; color: var(--faint); }
+.harp-positions b { color: var(--ink); font-weight: 700; }
+.harp-positions i { font-style: normal; color: var(--faint); }
 /* Accidental glyph inside a serif heading: draw it in the body font (which has a
    properly-sized ♭/♯) tucked close to its note letter. */
 .acc {

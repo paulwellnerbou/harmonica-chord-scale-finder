@@ -6,7 +6,7 @@
 // blow and draw reed; overblows/overdraws are one semitone above the higher
 // of the two reeds. Draw bends live on holes 1-6, blow bends on holes 7-10.
 
-import { PC_NAMES_FLAT } from './theory.js';
+import { PC_NAMES_FLAT, transposeFifths } from './theory.js';
 
 // Per hole: blow/draw reed MIDI, the reachable bend notes (deepest-bend-last),
 // and the overblow (holes 1-6) / overdraw (holes 7-10) MIDI. Bend arrays are
@@ -34,6 +34,24 @@ export const KEY_OFFSETS = {
 };
 
 export const KEY_ORDER = ['G', 'Ab', 'A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'F#'];
+
+// Playing positions. Each one starts a perfect fifth further round the circle
+// than the last, beginning at 1st position — the key printed on the harp. The
+// count runs to 12, but 2nd (the blues position) and 3rd are the two a player
+// wants next to the key: they say which tonic the same holes and bends serve.
+// `nick` is the name players actually use for the position, shown beside the key.
+const POSITIONS = [
+  { name: '2nd', fifths: 1, minor: false, mode: 'Mixolydian', nick: 'Cross harp' },
+  { name: '3rd', fifths: 2, minor: true, mode: 'Dorian' },
+];
+
+// [{ name: '2nd', label: 'G', nick: 'Cross harp', hint: 'G Mixolydian' }, …]
+export function positionKeys(key) {
+  return POSITIONS.map(({ name, fifths, minor, mode, nick }) => {
+    const root = transposeFifths(key, fifths);
+    return { name, label: root + (minor ? 'm' : ''), nick, hint: `${root} ${mode}` };
+  });
+}
 
 export function pcOf(midi) {
   return ((midi % 12) + 12) % 12;
