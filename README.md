@@ -15,6 +15,11 @@ Live at [harmonica.wbou.de](https://harmonica.wbou.de/).
 - Play the highlighted notes, or click any single note, to hear it (Web Audio).
 - Copy or download the layout as a PNG — transparent background, title baked in — via the split image button.
 
+## Using the images
+
+Every layout you copy or download from the app is free to use however you like — lesson handouts,
+songbooks, blog posts, videos, print, commercial work. No restrictions, no attribution needed.
+
 ## Harmonica model
 
 Standard Richter tuning is encoded once as the key-of-C harp (as MIDI numbers); every other key is a straight transposition. Bends are the chromatic notes strictly between the blow and draw reed; overblows/overdraws sit a semitone above the higher reed. Draw bends live on holes 1–6, blow bends on 7–10. Everything you blow is drawn above the number bar and everything you draw below it, with deeper bends further from the bar.

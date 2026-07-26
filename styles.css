@@ -933,6 +933,13 @@ body::after {
   transition: background 0.13s ease, color 0.13s ease;
 }
 .img-opt:hover { background: var(--brass-soft); color: var(--brass-lit); }
+/* The menu is sized to its buttons, so the note has to wrap inside that width. */
+.img-note {
+  margin: 4px 0 0; padding: 8px 12px 2px;
+  border-top: 1px solid var(--line);
+  white-space: normal; max-width: 200px;
+  color: var(--muted); font-size: 0.72rem; line-height: 1.45;
+}
 
 /* --- Info panel ------------------------------------------------------------*/
 .info {
@@ -1048,6 +1055,9 @@ body::after {
   color: var(--muted); font-size: 0.8rem;
 }
 .foot p { margin: 0; line-height: 1.55; }
+/* Outranks the `.foot p` reset above, which the plain `.foot-meta` margin can't. */
+.foot p + p { margin-top: 10px; }
+.foot-free b { color: var(--brass); }
 .foot-meta {
   display: flex; justify-content: space-between; flex-wrap: wrap;
   gap: 4px 24px; margin-top: 8px;
