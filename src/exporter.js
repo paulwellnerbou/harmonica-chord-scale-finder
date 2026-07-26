@@ -33,7 +33,7 @@ const COLORS = {
   // Cover plate + comb, mirroring --plate-hi/-lo/-edge and --comb-hi/-lo.
   plate: ['#f4ecdd', '#e2d8c4'],
   plateEdge: '#c9ba9d',
-  comb: ['#2c2720', '#16110c'],
+  comb: ['#5c3a21', '#2b1a0e'],
   ink: `rgb(${INK})`,
 };
 const inkAlpha = (a) => `rgba(${INK}, ${a})`;
@@ -136,12 +136,23 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   ctx.fill();
   ctx.stroke();
 
-  // Dark comb (number bar) with a slight overhang, like the page.
-  const barH = 30;
+  // Wooden comb (number bar), jutting out past the plate at both ends as on the page.
+  const barH = 34, barOver = 34; // 30px past the plate, which itself sits 4px past the grid
+  const barX = gridLeft - barOver, barW = GRID_W + barOver * 2;
   const barY = rowTop[4] + (ROW_H[4] - barH) / 2;
   ctx.fillStyle = vGradient(barY, barY + barH, COLORS.comb);
-  roundRect(ctx, gridLeft - 6, barY, GRID_W + 12, barH, 8); // matches .number-bar border-radius
+  roundRect(ctx, barX, barY, barW, barH, 8); // matches .number-bar border-radius
   ctx.fill();
+  // Grain, mirroring .number-bar's repeating gradient.
+  ctx.save();
+  ctx.clip();
+  for (let gy = 0; gy < barH; gy += 9) {
+    ctx.fillStyle = 'rgba(255, 233, 196, 0.05)';
+    ctx.fillRect(barX, barY + gy, barW, 1);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(barX, barY + gy + 4, barW, 1);
+  }
+  ctx.restore();
 
   const drawBox = (n, x) => {
     const row = gridRow(n.type, n.depth);
