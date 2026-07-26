@@ -320,27 +320,27 @@ body::after {
 .cbx-opt[aria-selected="true"]::after { content: "✓"; }
 .cbx-opt:hover, .cbx-opt.active { background: var(--brass-soft); color: var(--brass-lit); }
 
-/* --- Query suggestions -----------------------------------------------------*/
-.sug-menu {
+/* --- Query type-ahead -----------------------------------------------------*/
+.typeahead-menu {
   top: calc(100% + 6px); left: 0; right: 0;
   max-height: 302px; overflow-y: auto;
 }
-.sug-group + .sug-group { margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--line); }
-.sug-head {
+.typeahead-group + .typeahead-group { margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--line); }
+.typeahead-head {
   display: block; padding: 5px 12px 4px;
   font-size: 0.66rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.11em;
   color: var(--faint);
 }
-.sug-opt {
+.typeahead-opt {
   display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
   padding: 8px 12px; border-radius: 8px; cursor: pointer;
   color: var(--ink); font-weight: 600; font-size: 1rem;
   transition: background 0.13s ease, color 0.13s ease;
 }
-.sug-desc { flex: none; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
-.sug-opt:hover, .sug-opt.active { background: var(--brass-soft); color: var(--brass-lit); }
-.sug-opt:hover .sug-desc, .sug-opt.active .sug-desc { color: var(--brass); }
+.typeahead-desc { flex: none; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+.typeahead-opt:hover, .typeahead-opt.active { background: var(--brass-soft); color: var(--brass-lit); }
+.typeahead-opt:hover .typeahead-desc, .typeahead-opt.active .typeahead-desc { color: var(--brass); }
 
 /* --- Shared popover animation ---------------------------------------------*/
 .pop {

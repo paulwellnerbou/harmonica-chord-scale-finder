@@ -514,7 +514,7 @@ function initControls() {
   const input = document.getElementById('query');
   input.addEventListener('input', () => setQuery(input.value));
 
-  initSuggest();
+  initTypeahead();
   initKeySelect();
 
   // Toggling a technique animates via CSS; only the info + Play button need a
@@ -652,9 +652,9 @@ function initTheme() {
 // and scales that can follow it ("G" → G, Gm7, G Blues, G Mixolydian …). The
 // field stays free-form — nothing is active until you arrow onto it, so Enter
 // never rewrites what you typed.
-const SUG_GROUP_LABEL = { chord: 'Chords', scale: 'Scales' };
+const TYPEAHEAD_GROUP_LABEL = { chord: 'Chords', scale: 'Scales' };
 
-function initSuggest() {
+function initTypeahead() {
   const input = document.getElementById('query');
   const menu = document.getElementById('query-menu');
   let opts = [];
@@ -691,25 +691,25 @@ function initSuggest() {
       if (c.kind !== kind) {
         kind = c.kind;
         group = document.createElement('div');
-        group.className = 'sug-group';
+        group.className = 'typeahead-group';
         group.setAttribute('role', 'group');
-        group.setAttribute('aria-label', SUG_GROUP_LABEL[kind]);
+        group.setAttribute('aria-label', TYPEAHEAD_GROUP_LABEL[kind]);
         const head = document.createElement('span');
-        head.className = 'sug-head';
+        head.className = 'typeahead-head';
         head.setAttribute('aria-hidden', 'true'); // the group's own label says this
-        head.textContent = SUG_GROUP_LABEL[kind];
+        head.textContent = TYPEAHEAD_GROUP_LABEL[kind];
         group.appendChild(head);
         menu.appendChild(group);
       }
       const opt = document.createElement('div');
-      opt.className = 'sug-opt';
-      opt.id = `sug-opt-${i}`;
+      opt.className = 'typeahead-opt';
+      opt.id = `typeahead-opt-${i}`;
       opt.setAttribute('role', 'option');
       opt.dataset.q = c.text; // ascii, so the URL and re-parsing stay clean
       const text = document.createElement('span');
       text.textContent = withMusicAccidentals(c.text);
       const desc = document.createElement('span');
-      desc.className = 'sug-desc';
+      desc.className = 'typeahead-desc';
       desc.textContent = c.desc;
       opt.append(text, desc);
       group.appendChild(opt);
@@ -743,7 +743,7 @@ function initSuggest() {
   // click that picked an option ever landed.
   menu.addEventListener('mousedown', (e) => e.preventDefault());
   menu.addEventListener('click', (e) => {
-    const opt = e.target.closest('.sug-opt');
+    const opt = e.target.closest('.typeahead-opt');
     if (opt) choose(opts.indexOf(opt));
   });
   input.addEventListener('blur', closeMenu);
