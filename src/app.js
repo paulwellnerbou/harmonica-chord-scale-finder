@@ -303,7 +303,7 @@ function fitHarp() {
   const px = (v) => parseFloat(v) || 0;
   const areaCs = getComputedStyle(area);
   const gutters = px(areaCs.paddingLeft) + px(areaCs.paddingRight); // side-label gutters
-  const natW = (px(getComputedStyle(harp).minWidth) || 628) + gutters;
+  const natW = (px(getComputedStyle(harp).minWidth) || 652) + gutters;
   const avail = fit.clientWidth;
   if (!avail) return; // laid out at zero width (hidden tab/pane) — keep the last fit
   if (avail < natW - 0.5) {

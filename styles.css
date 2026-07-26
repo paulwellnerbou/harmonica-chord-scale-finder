@@ -57,8 +57,8 @@
   --plate-hi: #f4ecdd;
   --plate-lo: #e2d8c4;
   --plate-edge: #c9ba9d;
-  --comb-hi: #2c2720;
-  --comb-lo: #16110c;
+  --comb-hi: #5c3a21;  /* dark pearwood comb */
+  --comb-lo: #2b1a0e;
   --box-ink: #221b12;
 
   --reed-fill: #f7f0e2;  --reed-border: #d8caad;
@@ -486,9 +486,9 @@ body::after {
     var(--row-7)   /* 7 draw bend */
     var(--row-8);  /* 8 draw bend */
   column-gap: 8px;
-  min-width: 628px;
+  min-width: 652px;
   position: relative;
-  padding: 0 6px; /* absorbs the number bar's -6px overhang */
+  padding: 0 18px; /* the comb's overhang past the cover plate */
 }
 
 /* Brushed cover plate behind the blow row, number bar and draw row. */
@@ -503,18 +503,29 @@ body::after {
     inset 0 1px 0 rgba(255, 255, 255, 0.75),
     inset 0 -3px 8px rgba(120, 96, 54, 0.16);
 }
-/* Dark comb: full-width number bar overlapping the plate's middle. */
+/* Wooden comb carrying the number bar. It runs longer than the cover plate and
+   juts out at both ends, the way the comb of a real harp does. */
 .number-bar {
   grid-column: 1 / -1;
   grid-row: 4;
-  background: linear-gradient(180deg, var(--comb-hi), var(--comb-lo));
+  /* Fine lengthwise grain over the body colour; the uneven spacing keeps it from
+     reading as a regular screen pattern. */
+  background:
+    repeating-linear-gradient(180deg,
+      rgba(255, 233, 196, 0.05) 0 1px,
+      transparent 1px 4px,
+      rgba(0, 0, 0, 0.2) 4px 5px,
+      transparent 5px 9px),
+    linear-gradient(180deg, var(--comb-hi), var(--comb-lo));
   border-radius: 8px;
   z-index: 1;
   align-self: center;
-  height: 30px;
-  margin: 0 -6px;
+  height: 34px;
+  /* Past the harp's own padding and into the label gutter — the BLOW / DRAW
+     labels sit clear of this row, so there is nothing to collide with. */
+  margin: 0 -30px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 1px 0 rgba(255, 226, 178, 0.14),
     inset 0 -2px 3px rgba(0, 0, 0, 0.5),
     0 2px 4px rgba(0, 0, 0, 0.4);
 }
