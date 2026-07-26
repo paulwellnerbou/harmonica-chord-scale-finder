@@ -133,17 +133,25 @@ let scheduled = [];
 // Every onset is scheduled up front on the audio clock rather than by a chain
 // of timers, so the spacing stays even no matter how long the context takes to
 // start or how busy the main thread is.
-// Returns the total time in ms until the last note has finished ringing, so
-// callers can time UI feedback without duplicating these constants.
+// Returns the sequence's timing in ms from now — when each note starts and how
+// long it sounds, plus the total until the last one has died away — so callers
+// can drive UI feedback note by note without duplicating these constants.
 export function playSequence(midis, gap = SEQ_GAP) {
   stopSequence();
-  if (!midis.length) return 0;
+  if (!midis.length) return { total: 0, notes: [] };
   const c = ac();
   if (c.state === 'suspended') c.resume();
-  const start = c.currentTime + LEAD_IN;
-  scheduled = midis.map((m, i) => playNote(m, SEQ_NOTE_DUR, start + i * gap));
+  const now = c.currentTime;
+  scheduled = midis.map((m, i) => playNote(m, SEQ_NOTE_DUR, now + LEAD_IN + i * gap));
   const last = scheduled[scheduled.length - 1];
-  return (last.end + STOP_TAIL - c.currentTime) * 1000;
+  return {
+    total: Math.round((last.end + STOP_TAIL - now) * 1000),
+    notes: scheduled.map((n, i) => ({
+      midi: midis[i],
+      at: Math.round((n.start - now) * 1000),
+      ms: Math.round((n.end - n.start) * 1000),
+    })),
+  };
 }
 
 // Silence a running sequence: duck whatever is sounding right now and drop

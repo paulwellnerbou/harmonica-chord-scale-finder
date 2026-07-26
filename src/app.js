@@ -105,7 +105,7 @@ function classForType(type) {
 // pitch class is shown.
 function soundNote(midi) {
   playNote(midi);
-  ring(`.box[data-midi="${midi}"], .chip[data-pc="${pcOf(midi)}"]`);
+  ring(cardsOf(midi));
 }
 
 // A chip stands for a pitch class rather than one octave, so playing it rings
@@ -115,14 +115,19 @@ function soundPitchClass(midi) {
   ring(`[data-pc="${pcOf(midi)}"]`);
 }
 
-// Hand the audio timing to CSS so the animation runs exactly as long as the tone.
-document.documentElement.style.setProperty('--ring-ms', `${NOTE_MS}ms`);
+function cardsOf(midi) {
+  return `.box[data-midi="${midi}"], .chip[data-pc="${pcOf(midi)}"]`;
+}
 
-// Every card rings on its own clock. Notes are never cut short — clicking a
-// second one leaves the first still sounding — so an earlier ring has to
-// outlive the click that follows it.
-function ring(selector) {
-  document.querySelectorAll(selector).forEach((el) => {
+// Every card rings on its own clock, for as long as its own tone lasts — a
+// clicked note sounds longer than one played as part of a sequence. Notes are
+// never cut short — clicking a second one leaves the first still sounding — so
+// an earlier ring has to outlive the click that follows it.
+function ring(selector, ms = NOTE_MS) {
+  const cards = document.querySelectorAll(selector);
+  cards.forEach((el) => {
+    // Hand the audio timing to CSS so the animation runs exactly as long as the tone.
+    el.style.setProperty('--ring-ms', `${ms}ms`);
     // Re-adding the class to a card that already has it is no change as far as
     // CSS is concerned, so its animation would carry on mid-flight. Rewind it
     // instead: same restart, without the forced layout that flushing the style
@@ -133,8 +138,14 @@ function ring(selector) {
       el.classList.add('is-sounding');
     }
     clearTimeout(el._ringTimer);
-    el._ringTimer = setTimeout(() => el.classList.remove('is-sounding'), NOTE_MS);
+    el._ringTimer = setTimeout(() => el.classList.remove('is-sounding'), ms);
   });
+  return cards;
+}
+
+function unring(el) {
+  clearTimeout(el._ringTimer);
+  el.classList.remove('is-sounding');
 }
 
 function makeBox(note) {
@@ -516,17 +527,37 @@ function playMatched() {
   if (playing) { endPlayback(btn); return; }
   const midis = matchedMidis();
   if (!midis.length) return;
-  const dur = playSequence(midis); // ms until the last note stops ringing
+  const seq = playSequence(midis);
   clearTimeout(playTimer);
+  ringSequence(seq.notes);
   playing = true;
   btn.classList.add('is-playing');
   btn.innerHTML = PLAYING_ICON;
   setPlayLabel(btn, STOP_LABEL);
-  playTimer = setTimeout(() => endPlayback(btn), dur);
+  playTimer = setTimeout(() => endPlayback(btn), seq.total);
+}
+
+// The sequence rings the same cards a click would, each as its own note comes
+// round. Both what is still to come and what is already lit are kept, so
+// stopping halfway leaves nothing glowing over the silence.
+let ringTimers = [];
+let ringingCards = [];
+function ringSequence(notes) {
+  ringTimers = notes.map(({ midi, at, ms }) => setTimeout(() => {
+    ringingCards.push(...ring(cardsOf(midi), ms));
+  }, at));
+}
+
+function endRings() {
+  ringTimers.forEach(clearTimeout);
+  ringingCards.forEach(unring);
+  ringTimers = [];
+  ringingCards = [];
 }
 
 function endPlayback(btn) {
   clearTimeout(playTimer);
+  endRings();
   stopSequence();
   playing = false;
   btn.classList.remove('is-playing');
