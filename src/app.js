@@ -118,21 +118,23 @@ function soundPitchClass(midi) {
 // Hand the audio timing to CSS so the animation runs exactly as long as the tone.
 document.documentElement.style.setProperty('--ring-ms', `${NOTE_MS}ms`);
 
-let ringTimer = null;
+// Every card rings on its own clock. Notes are never cut short — clicking a
+// second one leaves the first still sounding — so an earlier ring has to
+// outlive the click that follows it.
 function ring(selector) {
-  const lit = new Set(document.querySelectorAll('.is-sounding'));
-  lit.forEach((el) => el.classList.remove('is-sounding'));
-  const cards = [...document.querySelectorAll(selector)];
-  cards.forEach((el) => {
-    el.classList.add('is-sounding');
-    // Taken off and put back within one task, the class never changes as far as
-    // CSS is concerned, so the animation would carry on mid-flight. Rewind it
-    // instead — only for the cards that were already ringing, and without the
-    // forced layout that flushing the style between the two changes would cost.
-    if (lit.has(el)) el.getAnimations({ subtree: true }).forEach((a) => { a.currentTime = 0; });
+  document.querySelectorAll(selector).forEach((el) => {
+    // Re-adding the class to a card that already has it is no change as far as
+    // CSS is concerned, so its animation would carry on mid-flight. Rewind it
+    // instead: same restart, without the forced layout that flushing the style
+    // between a removal and an addition would cost.
+    if (el.classList.contains('is-sounding')) {
+      el.getAnimations({ subtree: true }).forEach((a) => { a.currentTime = 0; });
+    } else {
+      el.classList.add('is-sounding');
+    }
+    clearTimeout(el._ringTimer);
+    el._ringTimer = setTimeout(() => el.classList.remove('is-sounding'), NOTE_MS);
   });
-  clearTimeout(ringTimer);
-  ringTimer = setTimeout(() => cards.forEach((el) => el.classList.remove('is-sounding')), NOTE_MS);
 }
 
 function makeBox(note) {
