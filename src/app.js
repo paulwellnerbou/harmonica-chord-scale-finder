@@ -1,5 +1,5 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
-import { buildHarp, KEY_ORDER, playableNotes, positionKeys, tabStrip, pcOf } from './harmonica.js';
+import { buildHarp, KEY_ORDER, playableNotes, positionKeys, suggestions, tabStrip, pcOf } from './harmonica.js';
 import { playNote, playSequence, stopSequence, primeAudio, NOTE_MS } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
@@ -390,6 +390,20 @@ function renderPositions() {
   document.getElementById('harp-positions').innerHTML = html.join('');
 }
 
+// The suggestion pills: what gets played most on this harp, so the list moves
+// with the key. Rebuilt only when the key actually changes — redrawing it on
+// every keystroke would take the focus off a pill the moment it was activated.
+let suggestedFor = null;
+function renderSuggestions() {
+  if (suggestedFor === state.key) return;
+  suggestedFor = state.key;
+  const pills = suggestions(state.key).map(({ q, hint }) =>
+    `<button type="button" class="example" data-q="${escapeHtml(q)}" title="${escapeHtml(hint)}">${withMusicAccidentals(escapeHtml(q))}</button>`);
+  const article = /^[AEF]/.test(state.key) ? 'an' : 'a'; // "an F harp", "a G harp"
+  document.getElementById('examples').innerHTML =
+    `<span>Common on ${article} ${withMusicAccidentals(escapeHtml(state.key))} harp:</span>${pills.join('')}`;
+}
+
 function renderInfo() {
   const info = document.getElementById('info');
   const p = state.parsed;
@@ -474,6 +488,7 @@ function render() {
   renderTabStrip();
   renderInfo();
   renderPositions();
+  renderSuggestions();
   const titleAscii = titleText();
   document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
   document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Chord & Scale Finder`;
@@ -526,8 +541,10 @@ function initControls() {
   shareBtn.innerHTML = SHARE_LABEL;
   shareBtn.addEventListener('click', () => copyLink(shareBtn));
 
-  document.querySelectorAll('.example').forEach((btn) => {
-    btn.addEventListener('click', () => setQuery(btn.dataset.q));
+  // Delegated: the suggestions are rebuilt whenever the harp key changes.
+  document.getElementById('examples').addEventListener('click', (e) => {
+    const btn = e.target.closest('.example');
+    if (btn) setQuery(btn.dataset.q);
   });
 
   // Delegated: the note chips are rebuilt on every render.

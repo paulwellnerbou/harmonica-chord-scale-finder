@@ -53,6 +53,38 @@ export function positionKeys(key) {
   });
 }
 
+// What a player actually reaches for on a given harp, most played first: the
+// home key, then cross harp (2nd position) and 3rd, and only then the modes and
+// positions that come up less often. `fifths` walks the circle exactly as
+// POSITIONS does, so the whole list follows the harp key; `note` names the thing
+// where the position alone doesn't say it.
+const SUGGESTIONS = [
+  { fifths: 0, suffix: ' Major' },
+  { fifths: 1, suffix: ' Blues' },
+  { fifths: 1, suffix: ' Minor Pentatonic' },
+  { fifths: 2, suffix: ' Minor' },
+  { fifths: 2, suffix: ' Blues' },
+  { fifths: 0, suffix: '', note: 'the blow chord' },
+  { fifths: 0, suffix: ' Major Pentatonic' },
+  { fifths: 1, suffix: '7', note: 'the draw chord' },
+  { fifths: 1, suffix: ' Mixolydian' },
+  { fifths: 2, suffix: ' Dorian' },
+  { fifths: 3, suffix: ' Minor' },
+];
+
+const ORDINALS = ['1st', '2nd', '3rd', '4th'];
+
+// [{ q: 'G Blues', hint: '2nd position · cross harp' }, …] for the given harp key.
+export function suggestions(key) {
+  return SUGGESTIONS.flatMap(({ fifths, suffix, note }) => {
+    const root = transposeFifths(key, fifths);
+    if (!root) return [];
+    const nick = POSITIONS.find((p) => p.fifths === fifths)?.nick;
+    const hint = [`${ORDINALS[fifths]} position`, nick?.toLowerCase(), note].filter(Boolean).join(' · ');
+    return [{ q: root + suffix, hint }];
+  });
+}
+
 export function pcOf(midi) {
   return ((midi % 12) + 12) % 12;
 }
