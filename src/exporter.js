@@ -145,6 +145,7 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   ctx.fill();
   // Grain, mirroring .number-bar's repeating gradient.
   ctx.save();
+  roundRect(ctx, barX, barY, barW, barH, 8);
   ctx.clip();
   for (let gy = 0; gy < barH; gy += 9) {
     ctx.fillStyle = 'rgba(255, 233, 196, 0.05)';
