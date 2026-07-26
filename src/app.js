@@ -1,4 +1,4 @@
-import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
+import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals, queryCompletions } from './theory.js';
 import { buildHarp, KEY_ORDER, playableNotes, positionKeys, suggestions, tabStrip, pcOf } from './harmonica.js';
 import { playNote, playSequence, stopSequence, primeAudio, NOTE_MS } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
@@ -514,6 +514,7 @@ function initControls() {
   const input = document.getElementById('query');
   input.addEventListener('input', () => setQuery(input.value));
 
+  initSuggest();
   initKeySelect();
 
   // Toggling a technique animates via CSS; only the info + Play button need a
@@ -644,6 +645,123 @@ function initTheme() {
     const next = root.dataset.theme === 'light' ? 'dark' : 'light';
     apply(next);
     try { localStorage.setItem('harp-theme', next); } catch (e) { /* private mode */ }
+  });
+}
+
+// Type-ahead under the query field: once a root note is typed, offer the chords
+// and scales that can follow it ("G" → G, Gm7, G Blues, G Mixolydian …). The
+// field stays free-form — nothing is active until you arrow onto it, so Enter
+// never rewrites what you typed.
+const SUG_GROUP_LABEL = { chord: 'Chords', scale: 'Scales' };
+
+function initSuggest() {
+  const input = document.getElementById('query');
+  const menu = document.getElementById('query-menu');
+  let opts = [];
+  let activeIndex = -1; // -1 = the typed text itself
+  let open = false;
+
+  const closeMenu = () => {
+    if (!open) return;
+    open = false;
+    menu.classList.remove('open');
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+  };
+
+  const setActive = (i) => {
+    activeIndex = i;
+    opts.forEach((el, idx) => el.classList.toggle('active', idx === i));
+    if (i < 0) { input.removeAttribute('aria-activedescendant'); return; }
+    opts[i].scrollIntoView({ block: 'nearest' });
+    input.setAttribute('aria-activedescendant', opts[i].id);
+  };
+
+  const build = (list) => {
+    menu.innerHTML = '';
+    opts = [];
+    let group = null;
+    let kind = null;
+    list.forEach((c, i) => {
+      if (c.kind !== kind) {
+        kind = c.kind;
+        group = document.createElement('div');
+        group.className = 'sug-group';
+        group.setAttribute('role', 'group');
+        group.setAttribute('aria-label', SUG_GROUP_LABEL[kind]);
+        const head = document.createElement('span');
+        head.className = 'sug-head';
+        head.setAttribute('aria-hidden', 'true'); // the group's own label says this
+        head.textContent = SUG_GROUP_LABEL[kind];
+        group.appendChild(head);
+        menu.appendChild(group);
+      }
+      const opt = document.createElement('div');
+      opt.className = 'sug-opt';
+      opt.id = `sug-opt-${i}`;
+      opt.setAttribute('role', 'option');
+      opt.dataset.q = c.text; // ascii, so the URL and re-parsing stay clean
+      const text = document.createElement('span');
+      text.textContent = withMusicAccidentals(c.text);
+      const desc = document.createElement('span');
+      desc.className = 'sug-desc';
+      desc.textContent = c.desc;
+      opt.append(text, desc);
+      group.appendChild(opt);
+      opts.push(opt);
+    });
+  };
+
+  const refresh = () => {
+    const typed = input.value.trim();
+    const list = queryCompletions(typed);
+    // A lone suggestion the field already spells out has nothing left to offer.
+    if (!list.length || (list.length === 1 && list[0].text.toLowerCase() === typed.toLowerCase())) {
+      closeMenu();
+      return;
+    }
+    build(list);
+    setActive(-1);
+    open = true;
+    menu.classList.add('open');
+    input.setAttribute('aria-expanded', 'true');
+  };
+
+  const choose = (i) => {
+    setQuery(opts[i].dataset.q);
+    closeMenu();
+    input.focus();
+  };
+
+  input.addEventListener('input', refresh);
+  // Keep the caret in the field: a blur here would close the menu before the
+  // click that picked an option ever landed.
+  menu.addEventListener('mousedown', (e) => e.preventDefault());
+  menu.addEventListener('click', (e) => {
+    const opt = e.target.closest('.sug-opt');
+    if (opt) choose(opts.indexOf(opt));
+  });
+  input.addEventListener('blur', closeMenu);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeMenu(); return; }
+    if (e.key === 'Tab') { closeMenu(); return; }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (!open) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); refresh(); }
+        return;
+      }
+      e.preventDefault();
+      const last = opts.length - 1;
+      // Wraps through -1, so the list always leads back to the typed text.
+      setActive(e.key === 'ArrowDown'
+        ? (activeIndex >= last ? -1 : activeIndex + 1)
+        : (activeIndex < 0 ? last : activeIndex - 1));
+      return;
+    }
+    if (e.key === 'Enter' && open) {
+      e.preventDefault();
+      if (activeIndex >= 0) choose(activeIndex); else closeMenu();
+    }
   });
 }
 

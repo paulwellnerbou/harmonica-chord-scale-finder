@@ -187,6 +187,94 @@ export function parseInput(str) {
   return parseScale(str) || null;
 }
 
+// --- Query completions ------------------------------------------------------
+// What can follow a root note, roughly in the order a harp player wants it.
+// Chord suffixes attach to the root directly ("Gm7"), scale names after a space
+// ("G Blues") — that spacing is exactly what parseInput reads them apart by.
+const COMPLETION_CATALOGUE = [
+  ['chord', '', 'Major triad'],
+  ['chord', 'm', 'Minor triad'],
+  ['chord', '7', 'Dominant 7'],
+  ['chord', 'm7', 'Minor 7'],
+  ['chord', 'maj7', 'Major 7'],
+  ['chord', '6', 'Major 6'],
+  ['chord', 'm6', 'Minor 6'],
+  ['chord', 'sus4', 'Suspended 4'],
+  ['chord', 'sus2', 'Suspended 2'],
+  ['chord', '5', 'Power chord, no 3rd'],
+  ['chord', '9', 'Dominant 9'],
+  ['chord', 'm9', 'Minor 9'],
+  ['chord', 'maj9', 'Major 9'],
+  ['chord', 'add9', 'Add 9'],
+  ['chord', 'dim', 'Diminished triad'],
+  ['chord', 'aug', 'Augmented triad'],
+  ['chord', 'm7b5', 'Half-diminished 7'],
+  ['chord', 'dim7', 'Diminished 7'],
+  ['chord', '11', 'Dominant 11'],
+  ['chord', '13', 'Dominant 13'],
+  ['scale', ' Major', 'Major scale (Ionian)'],
+  ['scale', ' Minor', 'Natural minor scale (Aeolian)'],
+  ['scale', ' Blues', 'Blues scale'],
+  ['scale', ' Minor Pentatonic', 'Minor pentatonic scale'],
+  ['scale', ' Major Pentatonic', 'Major pentatonic scale'],
+  ['scale', ' Mixolydian', 'Mixolydian mode'],
+  ['scale', ' Dorian', 'Dorian mode'],
+  ['scale', ' Major Blues', 'Major blues scale'],
+  ['scale', ' Harmonic Minor', 'Harmonic minor scale'],
+  ['scale', ' Melodic Minor', 'Melodic minor scale'],
+  ['scale', ' Lydian', 'Lydian mode'],
+  ['scale', ' Phrygian', 'Phrygian mode'],
+  ['scale', ' Phrygian Dominant', 'Phrygian dominant scale'],
+  ['scale', ' Locrian', 'Locrian mode'],
+  ['scale', ' Ionian', 'Ionian mode, the major scale'],
+  ['scale', ' Aeolian', 'Aeolian mode, the natural minor'],
+  ['scale', ' Harmonic Major', 'Harmonic major scale'],
+  ['scale', ' Whole Tone', 'Whole tone scale'],
+  ['scale', ' Chromatic', 'Chromatic scale'],
+];
+
+// The catalogue is written by hand, so each entry has to prove it still parses
+// as the kind it claims — an entry that drifts from the tables above is dropped
+// rather than offered as a suggestion the app would then fail to read.
+const COMPLETIONS = COMPLETION_CATALOGUE
+  .map(([kind, suffix, desc]) => ({ kind, suffix, desc }))
+  .filter((c) => parseInput(`C${c.suffix}`)?.kind === c.kind);
+
+const KIND_ORDER = ['chord', 'scale'];
+
+// How well an entry answers what was typed after the root, best first, or null
+// for no match: the symbol you'd type ("m7"), then the description, then any
+// word of either ("pent" → Minor Pentatonic), then word-by-word for several
+// typed words ("mel min" → Melodic Minor).
+function completionRank(typed, { suffix, desc }) {
+  if (!typed) return 0;
+  const symbol = suffix.trim().toLowerCase();
+  const description = desc.toLowerCase();
+  if (symbol.startsWith(typed)) return 0;
+  if (description.startsWith(typed)) return 1;
+  const words = `${symbol} ${description}`.split(/[\s(),]+/).filter(Boolean);
+  if (words.some((w) => w.startsWith(typed))) return 2;
+  const tokens = typed.split(/\s+/);
+  if (tokens.length > 1 && tokens.every((t) => words.some((w) => w.startsWith(t)))) return 3;
+  return null;
+}
+
+// Completions for a partially typed query, as {kind, text, desc} with `text`
+// the full query to apply. Grouped by kind and ranked within the group; empty
+// until a root note is typed, since every suggestion is built on one. The root
+// keeps the user's own spelling so "F#" never comes back as "Gb".
+export function queryCompletions(str) {
+  const s = normalizeAccidentals(str.trimStart());
+  const head = parseNoteHead(s);
+  if (!head) return [];
+  const root = s[0].toUpperCase() + s.slice(1, head.len);
+  const typed = s.slice(head.len).trim().toLowerCase();
+  return COMPLETIONS
+    .map((c) => ({ ...c, text: root + c.suffix, rank: completionRank(typed, c) }))
+    .filter((c) => c.rank !== null)
+    .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || a.rank - b.rank);
+}
+
 // Spelled-out chord-quality suffix for titles, so "Am7" reads "A Minor 7" like
 // "Am" reads "A Minor". Complex altered dominants keep their compact symbol.
 const CHORD_SUFFIX = {
