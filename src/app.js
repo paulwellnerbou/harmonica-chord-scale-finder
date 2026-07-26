@@ -752,7 +752,10 @@ function initTypeahead() {
     if (e.key === 'Tab') { closeMenu(); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       if (!open) {
-        if (e.key === 'ArrowDown') { e.preventDefault(); refresh(); }
+        refresh();
+        if (!open) return; // nothing to complete — leave the caret keys as they were
+        e.preventDefault();
+        if (e.key === 'ArrowUp') setActive(opts.length - 1); // ↑ opens at the end
         return;
       }
       e.preventDefault();

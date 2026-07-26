@@ -272,6 +272,8 @@ export function queryCompletions(str) {
   return COMPLETIONS
     .map((c) => ({ ...c, text: root + c.suffix, rank: completionRank(typed, c) }))
     .filter((c) => c.rank !== null)
+    // Array#sort is stable, so equal ranks stay in catalogue order — which is the
+    // entire order until something is typed and every rank is still 0.
     .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || a.rank - b.rank);
 }
 
