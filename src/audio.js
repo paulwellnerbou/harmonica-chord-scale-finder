@@ -56,10 +56,11 @@ const VIB_ONSET = 0.3;
 
 const NOTE_DUR = 0.62;
 
-// Click to silence for a single note — lets the UI time its feedback to what is
-// actually audible instead of restating these constants. Deliberately short of
-// the oscillators' own stop: they run on for STOP_TAIL, but the envelope has
-// floored at 0.0008 by then, so there is nothing left to hear.
+// Click to silence for a single note: the lead-in's scheduled quiet plus the
+// note itself, so the UI can time its feedback off one number instead of
+// restating these constants. Deliberately short of the oscillators' own stop —
+// they run on for STOP_TAIL, but the envelope has floored at 0.0008 by then, so
+// there is nothing left to hear.
 export const NOTE_MS = Math.round((LEAD_IN + NOTE_DUR) * 1000);
 
 export function playNote(midi, duration = NOTE_DUR, at = 0) {
