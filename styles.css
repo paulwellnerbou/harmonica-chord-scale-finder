@@ -657,9 +657,10 @@ body::after {
 }
 
 /* --- Sounding note ---------------------------------------------------------*/
-/* Click a note and a spark runs around the border of the cards showing it, for
-   the note's whole click-to-silence span (--ring-ms, handed over by the audio
-   module; the spark's own fade-in covers the lead-in before the tone starts).
+/* Click a note — or play the whole selection — and a spark runs around the
+   border of the cards showing it, for as long as that note sounds (--ring-ms,
+   handed over per card by the audio module; on a click the spark's own fade-in
+   covers the lead-in before the tone starts).
    Registering the angle is what lets it animate at all: unregistered custom
    properties don't interpolate. */
 @property --ring-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
