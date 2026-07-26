@@ -260,6 +260,10 @@ body::after {
   position: relative;
   z-index: 20; /* keep open dropdowns above the stage card below */
 }
+/* A key menu that opened upwards reaches into the fixed top-right actions, and
+   should cover them rather than the other way round — but only while it is open,
+   so the buttons keep their place over everything that scrolls past them. */
+.controls:has(.cbx-menu.open) { z-index: 50; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field.grow { flex: 1 1 320px; }
 .field label, .field-label {
@@ -310,11 +314,18 @@ body::after {
 .cbx-btn[aria-expanded="true"] .cbx-caret { rotate: 180deg; color: var(--brass); }
 .cbx-menu {
   top: calc(100% + 6px); left: 0; right: 0; min-width: 100%;
-  /* Room for all 12 keys. openMenu() overrides this with the space actually left
-     below the button, so a short window scrolls instead of running off-screen. */
-  max-height: 460px; overflow-y: auto;
+  /* Room for all 12 keys, or as much of it as openMenu() found beside the button —
+     a short window scrolls the list instead of running it off-screen. */
+  max-height: min(460px, var(--menu-room, 460px)); overflow-y: auto;
   list-style: none; margin: 0;
 }
+/* Set by openMenu() where the list has more room above the button than below,
+   as on a phone held landscape. */
+.cbx-menu.above {
+  top: auto; bottom: calc(100% + 6px);
+  translate: 0 6px; transform-origin: bottom center;
+}
+.cbx-menu.above.open { translate: 0; }
 /* Key, then the tonics it serves in 2nd/3rd position. The key column has a floor
    so the annotations line up down the list even where the key carries a ♭/♯. */
 .cbx-opt {

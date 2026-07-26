@@ -684,9 +684,16 @@ function initKeySelect() {
   };
   const openMenu = () => {
     open = true;
-    // All 12 keys at once where the window allows it; the CSS cap otherwise.
-    const room = window.innerHeight - btn.getBoundingClientRect().bottom - 22;
-    menu.style.maxHeight = `${Math.max(200, Math.round(room))}px`;
+    // How far the list may run before it hits the edge of the window (the CSS
+    // caps it at all 12 keys), dropping down unless the whole list would fit
+    // above and not below. The floor keeps a couple of rows visible in a window
+    // too short for even that.
+    const { top, bottom } = btn.getBoundingClientRect();
+    const below = window.innerHeight - bottom - 22;
+    const above = top - 22;
+    const up = below < Math.min(menu.scrollHeight, above);
+    menu.classList.toggle('above', up);
+    menu.style.setProperty('--menu-room', `${Math.max(96, Math.round(up ? above : below))}px`);
     menu.classList.add('open');
     btn.setAttribute('aria-expanded', 'true');
     setActive(KEY_ORDER.indexOf(state.key));
