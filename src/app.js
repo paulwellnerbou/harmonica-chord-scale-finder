@@ -1,5 +1,5 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
-import { buildHarp, KEY_ORDER, playableNotes, tabStrip, pcOf } from './harmonica.js';
+import { buildHarp, KEY_ORDER, playableNotes, positionKeys, tabStrip, pcOf } from './harmonica.js';
 import { playNote, playSequence, stopSequence, primeAudio, NOTE_MS } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
@@ -373,6 +373,23 @@ function titleText() {
   return what ? `${what} · Harp in ${state.key}` : `Harp in ${state.key}`;
 }
 
+// Line under the title: the tonics the same harp serves in 2nd and 3rd position.
+// 1st position is the harp key, already in the title.
+function positionsText() {
+  return positionKeys(state.key)
+    .map((p) => `${p.name} position: ${p.label}${p.nick ? ` (${p.nick})` : ''}`)
+    .join(' · ');
+}
+
+function renderPositions() {
+  const html = positionKeys(state.key).map((p) => {
+    const hint = escapeHtml(withMusicAccidentals(p.hint));
+    const nick = p.nick ? ` <i>(${escapeHtml(p.nick)})</i>` : '';
+    return `<span title="${hint}">${p.name} position <b>${accidentalsHtml(p.label)}</b>${nick}</span>`;
+  });
+  document.getElementById('harp-positions').innerHTML = html.join('');
+}
+
 function renderInfo() {
   const info = document.getElementById('info');
   const p = state.parsed;
@@ -456,6 +473,7 @@ function render() {
   renderHarp();
   renderTabStrip();
   renderInfo();
+  renderPositions();
   const titleAscii = titleText();
   document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
   document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Chord & Scale Finder`;
@@ -697,6 +715,7 @@ function buildImage() {
     showOverblow: state.showOverblow,
     showOverdraw: state.showOverdraw,
     title: withMusicAccidentals(titleText()),
+    subtitle: withMusicAccidentals(positionsText()),
   });
   // Slug stays ascii (from the unformatted title) for a clean filename.
   const slug = titleText().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');
