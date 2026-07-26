@@ -1,5 +1,5 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals } from './theory.js';
-import { buildHarp, KEY_ORDER, playableNotes, tabLine, pcOf } from './harmonica.js';
+import { buildHarp, KEY_ORDER, playableNotes, tabStrip, pcOf } from './harmonica.js';
 import { playNote, playSequence, stopSequence, primeAudio, NOTE_MS } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
@@ -99,7 +99,7 @@ function classForType(type) {
   return 'bend';
 }
 
-// A key on the harp or in the tab line is one specific pitch, so playing it
+// A key on the harp or in the tab strip is one specific pitch, so playing it
 // rings that pitch alone (both holes, where two make the same note) plus its
 // tab key — and the info panel's chip for it, that being the only place the
 // pitch class is shown.
@@ -227,14 +227,15 @@ function renderHarp() {
   applyVisibility();
 }
 
-// The matching notes as a line of small tab keys ("1 -1' -1 -2'' -2 / 3 …"),
-// low to high — the order you'd actually play them.
-function renderTab() {
-  const row = document.getElementById('scale-tab');
-  const line = tabLine(matchedNotes());
-  row.hidden = line.length === 0;
+// The selection as a strip of small tab keys ("1 -1' -1 -2'' -2 / 3 …"), low to
+// high — the order you'd actually play them, with the notes the harp can't
+// reach marked ✕ in the place they'd have taken.
+function renderTabStrip() {
+  const row = document.getElementById('tab-strip');
+  const keys = state.parsed ? tabStrip(buildHarp(state.key), state, state.parsed.pcs) : [];
+  row.hidden = keys.length === 0;
   row.innerHTML = '';
-  line.forEach((k) => {
+  keys.forEach((k) => {
     // Key and note name share one column, so the name can never drift out of
     // alignment with the key above it.
     const cell = document.createElement('div');
@@ -242,19 +243,25 @@ function renderTab() {
 
     const el = document.createElement('button');
     el.type = 'button';
-    el.className = `box mini ${classForType(k.notes[0].type)} ${highlightFor(k.pc, state.parsed, state.triad)}`;
+    el.className = k.missing
+      ? 'box mini miss'
+      : `box mini ${classForType(k.notes[0].type)} ${highlightFor(k.pc, state.parsed, state.triad)}`;
     el.dataset.pc = String(k.pc);
     el.dataset.midi = String(k.midi);
     el.textContent = k.text;
-    const what = `${k.notes[0].name} · ${k.notes.map((n) => `hole ${n.hole} ${labelForType(n)}`).join(' or ')}`;
+    const what = k.missing
+      ? `${k.name} · not reachable with the current techniques`
+      : `${k.name} · ${k.notes.map((n) => `hole ${n.hole} ${labelForType(n)}`).join(' or ')}`;
     el.title = what;
     el.setAttribute('aria-label', what); // the tab text alone reads poorly aloud
+    // A missing key sounds its note too, like an unreachable chip does, so you
+    // can hear what the setting costs you.
     el.addEventListener('click', () => soundNote(k.midi));
     cell.appendChild(el);
 
     const name = document.createElement('span');
     name.className = 'tab-name';
-    name.textContent = withMusicAccidentals(k.notes[0].name);
+    name.textContent = withMusicAccidentals(k.name);
     cell.appendChild(name);
 
     row.appendChild(cell);
@@ -267,7 +274,7 @@ function fitHarp() {
   const fit = document.querySelector('.harp-fit');
   const area = document.querySelector('.harp-area');
   const harp = document.getElementById('harp');
-  const tab = document.getElementById('scale-tab');
+  const tab = document.getElementById('tab-strip');
   if (!fit || !area || !harp || !tab) return;
   const px = (v) => parseFloat(v) || 0;
   const areaCs = getComputedStyle(area);
@@ -280,10 +287,10 @@ function fitHarp() {
     area.style.width = `${natW}px`;
     area.style.transformOrigin = 'top left';
     area.style.transform = `scale(${scale})`;
-    // Only the tab line has to be measured (its height depends on how many keys
+    // Only the tab strip has to be measured (its height depends on how many keys
     // wrap); the harp's own rows come from --harp-h so the wrapper keeps
     // tracking the row-collapse animation. Measured after the width is set, so
-    // the tab line is laid out at its natural size.
+    // the strip is laid out at its natural size.
     const tabH = tab.hidden ? 0 : tab.offsetHeight + px(getComputedStyle(tab).marginTop);
     fit.style.setProperty('--tab-h', `${tabH}px`);
     // clientWidth excludes padding; add the wrapper's own back to the height.
@@ -410,7 +417,7 @@ function renderInfo() {
 }
 
 // Notes on the current harp that match the query and are visible under the
-// current toggles, ascending — the tab line, and what the Play button sounds.
+// current toggles, ascending — what the Play button sounds.
 function matchedNotes() {
   if (!state.parsed) return [];
   return playableNotes(buildHarp(state.key), state).filter((n) => state.parsed.pcs.includes(n.pc));
@@ -423,7 +430,7 @@ function matchedMidis() {
 
 function render() {
   renderHarp();
-  renderTab();
+  renderTabStrip();
   renderInfo();
   const titleAscii = titleText();
   document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
@@ -456,7 +463,7 @@ function initControls() {
   // refresh (rebuilding the harp here would cancel the fade).
   const onToggle = () => {
     applyVisibility();
-    renderTab();
+    renderTabStrip();
     renderInfo();
     document.getElementById('play').disabled = matchedMidis().length === 0;
     fitHarp();

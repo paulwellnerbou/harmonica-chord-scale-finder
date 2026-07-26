@@ -83,18 +83,43 @@ function tabNotation(n) {
 
 // One tab key per distinct pitch, in playing order. Where two holes make the
 // same note (2 draw and 3 blow) they share a key labelled "-2 / 3".
-export function tabLine(notes) {
-  const line = [];
+function tabKeys(notes) {
+  const keys = [];
   for (const n of notes) {
-    const prev = line[line.length - 1];
+    const prev = keys[keys.length - 1];
     if (prev && prev.midi === n.midi) {
       prev.notes.push(n);
       prev.text += ` / ${tabNotation(n)}`;
     } else {
-      line.push({ midi: n.midi, pc: n.pc, notes: [n], text: tabNotation(n) });
+      keys.push({ midi: n.midi, pc: n.pc, name: n.name, notes: [n], text: tabNotation(n) });
     }
   }
-  return line;
+  return keys;
+}
+
+const MISS_TAB = '✕'; // same marker the info panel's unreachable chips carry
+
+// The tab strip: the selected pitch classes across the harp's range, low to
+// high. A pitch no enabled technique reaches keeps its place as a `missing`
+// key, so the strip shows the gaps a setting leaves in a scale instead of
+// silently closing over them. The range is the whole instrument's, not just the
+// enabled techniques', so toggling one changes which keys are missing rather
+// than how far the strip reaches.
+export function tabStrip(harp, show, pcs) {
+  if (!pcs.length) return [];
+  const midis = allNotes(harp).map((n) => n.midi);
+  const keys = new Map(tabKeys(playableNotes(harp, show).filter((n) => pcs.includes(n.pc)))
+    .map((k) => [k.midi, k]));
+
+  const strip = [];
+  const hi = Math.max(...midis);
+  for (let midi = Math.min(...midis); midi <= hi; midi++) {
+    const pc = pcOf(midi);
+    if (!pcs.includes(pc)) continue;
+    strip.push(keys.get(midi)
+      || { midi, pc, name: noteName(midi), notes: [], text: MISS_TAB, missing: true });
+  }
+  return strip;
 }
 
 // Every note reachable with the given techniques enabled, in the order a player

@@ -387,9 +387,9 @@ body::after {
   box-shadow: var(--stage-shadow);
   transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
-/* The tab line runs the width of the harp, so give the corner share button its
+/* The tab strip runs the width of the harp, so give the corner share button its
    own band below instead of letting the two overlap. */
-.stage:has(#scale-tab:not([hidden])) { padding-bottom: 56px; }
+.stage:has(#tab-strip:not([hidden])) { padding-bottom: 56px; }
 .harp-title {
   text-align: center;
   font-family: 'Fraunces', Georgia, serif;
@@ -672,7 +672,7 @@ body::after {
 .box.reed { --ring: color-mix(in srgb, var(--reed-border) 62%, var(--box-ink)); } /* barely darker than its own fill */
 .box.bend { --ring: var(--bend-border); }
 .box.over { --ring: var(--over-border); }
-.chip.miss { --ring: var(--faint); } /* its --line border is near-transparent */
+.chip.miss, .box.mini.miss { --ring: var(--faint); } /* both are outlined too faintly to spark with */
 .box.tone, .chip.tone { --ring: var(--tone); }
 .box.match, .chip.match { --ring: var(--match); }
 .box.root, .chip.root { --ring: var(--root); }
@@ -724,18 +724,18 @@ body::after {
   to   { filter: drop-shadow(0 0 var(--lit) transparent); }
 }
 
-/* --- Tab line (the selection in playing order) -----------------------------*/
+/* --- Tab strip (the selection in playing order) ----------------------------*/
 /* Sized in cqw against the harp's own width, so the ~24 keys a 7-note scale
    needs always fit one line — and so the keys shrink together with the harp
    when fitHarp() scales it down. Mirrored by the same fractions in exporter.js. */
-.scale-tab {
+.tab-strip {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.58cqw;
   margin-top: 2.1cqw;
 }
-.scale-tab[hidden] { display: none; }
+.tab-strip[hidden] { display: none; }
 /* Column per key: the stretch keeps the key and its note name on the same box,
    so the name is always exactly below the key it belongs to. */
 .tab-key { display: flex; flex-direction: column; }
@@ -756,6 +756,18 @@ body::after {
   border-radius: 0.75cqw;
   white-space: nowrap; /* "-2 / 3" stays on one line */
 }
+/* A note the enabled techniques can't reach: an empty socket holding the place
+   it would have taken, so the gap in the scale is visible instead of the strip
+   closing over it. Page-chrome tokens rather than instrument ones — it is the
+   absence of a key, not a key. */
+.box.mini.miss {
+  background: var(--fill-1);
+  border: 1.5px dashed color-mix(in srgb, var(--faint) 55%, transparent);
+  color: var(--faint);
+  box-shadow: none;
+}
+.box.mini.miss:hover { background: var(--fill-2); box-shadow: none; }
+.tab-key:has(.miss) .tab-name { color: var(--faint); }
 
 /* --- Toggles (animated switches) ------------------------------------------*/
 .toggles {
