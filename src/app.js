@@ -375,10 +375,23 @@ function titleText() {
 
 // Line under the title: the tonics the same harp serves in 2nd and 3rd position.
 // 1st position is the harp key, already in the title.
-function positionsText() {
-  return positionKeys(state.key)
+function positionsText(key = state.key) {
+  return positionKeys(key)
     .map((p) => `${p.name} position ${p.label}${p.nick ? ` (${p.nick})` : ''}`)
     .join(' · ');
+}
+
+// The same tonics as a menu annotation — "2nd G · 3rd Dm". Terse because it sits
+// beside every key in the dropdown, where the pattern repeats down the list; the
+// tonics themselves are picked out as the line under the title picks them out.
+function positionsBriefNodes(key) {
+  const frag = document.createDocumentFragment();
+  positionKeys(key).forEach((p, i) => {
+    const tonic = document.createElement('b');
+    tonic.textContent = withMusicAccidentals(p.label);
+    frag.append(`${i ? ' · ' : ''}${p.name} `, tonic);
+  });
+  return frag;
 }
 
 function renderPositions() {
@@ -644,7 +657,15 @@ function initKeySelect() {
     li.id = `key-opt-${i}`;
     li.setAttribute('role', 'option');
     li.dataset.key = k; // keep the raw key for logic
-    li.textContent = withMusicAccidentals(k);
+    const keyEl = document.createElement('span');
+    keyEl.className = 'cbx-opt-key';
+    keyEl.textContent = withMusicAccidentals(k);
+    const posEl = document.createElement('span');
+    posEl.className = 'cbx-opt-pos';
+    posEl.append(positionsBriefNodes(k));
+    li.append(keyEl, posEl);
+    // Spelled out for screen readers, which would read the terse form as noise.
+    li.setAttribute('aria-label', withMusicAccidentals(`${k} harp, ${positionsText(k)}`));
     li.setAttribute('aria-selected', String(k === state.key));
     menu.appendChild(li);
   });
@@ -663,6 +684,9 @@ function initKeySelect() {
   };
   const openMenu = () => {
     open = true;
+    // All 12 keys at once where the window allows it; the CSS cap otherwise.
+    const room = window.innerHeight - btn.getBoundingClientRect().bottom - 22;
+    menu.style.maxHeight = `${Math.max(200, Math.round(room))}px`;
     menu.classList.add('open');
     btn.setAttribute('aria-expanded', 'true');
     setActive(KEY_ORDER.indexOf(state.key));

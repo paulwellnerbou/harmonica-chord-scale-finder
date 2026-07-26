@@ -294,7 +294,10 @@ body::after {
 .cbx { position: relative; }
 .cbx-btn {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  min-width: 100px; height: 48px; padding: 0 12px 0 14px;
+  /* Wide enough that the menu — pinned to the button's box — fits its widest row
+     ("F♯  2nd C♯ · 3rd G♯m", ticked) with room to spare, so no option ever wraps
+     or scrolls sideways, and the menu never spills past the page edge. */
+  min-width: 208px; height: 48px; padding: 0 12px 0 14px;
   font: inherit; font-size: 1.05rem; font-weight: 600;
   color: var(--ink); background: var(--input-bg);
   border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
@@ -307,18 +310,30 @@ body::after {
 .cbx-btn[aria-expanded="true"] .cbx-caret { rotate: 180deg; color: var(--brass); }
 .cbx-menu {
   top: calc(100% + 6px); left: 0; right: 0; min-width: 100%;
-  max-height: 288px; overflow-y: auto;
+  /* Room for all 12 keys. openMenu() overrides this with the space actually left
+     below the button, so a short window scrolls instead of running off-screen. */
+  max-height: 460px; overflow-y: auto;
   list-style: none; margin: 0;
 }
+/* Key, then the tonics it serves in 2nd/3rd position. The key column has a floor
+   so the annotations line up down the list even where the key carries a ♭/♯. */
 .cbx-opt {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 9px 12px; border-radius: 8px; cursor: pointer;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px; border-radius: 8px; cursor: pointer;
   color: var(--ink); font-weight: 600; font-size: 1rem;
   transition: background 0.13s ease, color 0.13s ease;
 }
+.cbx-opt-key { min-width: 1.9em; }
+.cbx-opt-pos { font-size: 0.76rem; color: var(--muted); white-space: nowrap; }
+.cbx-opt-pos b { color: var(--ink); font-weight: 700; }
 .cbx-opt::after { content: ""; font-size: 0.85em; color: var(--brass); }
 .cbx-opt[aria-selected="true"]::after { content: "✓"; }
 .cbx-opt:hover, .cbx-opt.active { background: var(--brass-soft); color: var(--brass-lit); }
+.cbx-opt:hover .cbx-opt-pos, .cbx-opt.active .cbx-opt-pos {
+  color: color-mix(in srgb, var(--brass-lit) 66%, transparent);
+}
+.cbx-opt:hover .cbx-opt-pos b, .cbx-opt.active .cbx-opt-pos b { color: var(--brass-lit); }
 
 /* --- Shared popover animation ---------------------------------------------*/
 .pop {
