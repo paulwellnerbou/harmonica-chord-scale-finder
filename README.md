@@ -8,6 +8,7 @@ Live at [harmonica.wbou.de](https://harmonica.wbou.de/).
 
 - Type a chord (`C`, `Am7`, `E7`, `F#9`, `Cmaj7`, …) or a scale (`C Blues`, `Em Pentatonic`, `D Dorian`, …) — or a bare note list (`C E G`) — and every hole/technique that plays a target note lights up, labelled with its interval degree.
 - The **root** is picked out; for a scale the **tonic-triad** notes (3rd & 5th) are marked more strongly than the remaining passing tones.
+- The **tab strip** under the harp runs the selection low to high in standard tab (`1 -1' -1 -2'' -2 / 3 …`), the order you'd actually play it; a note the enabled techniques can't reach keeps its place as a dashed ✕ socket, so the gaps a setting leaves in a scale stay visible.
 - Switch the **harp key** (G through F#) and the whole chart transposes.
 - Toggle bends and overblows/overdraws on or off.
 - Play the highlighted notes, or click any single note, to hear it (Web Audio).
