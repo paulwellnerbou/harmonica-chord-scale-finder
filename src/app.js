@@ -119,13 +119,20 @@ function cardsOf(midi) {
   return `.box[data-midi="${midi}"], .chip[data-pc="${pcOf(midi)}"]`;
 }
 
+// What lit the ring a card is wearing right now. Stopping a sequence puts out
+// only its own rings: a note clicked while it played is still sounding, and
+// keeps its ring until its own tone dies.
+const BY_CLICK = 'click';
+const BY_SEQUENCE = 'sequence';
+
 // Every card rings on its own clock, for as long as its own tone lasts — a
 // clicked note sounds longer than one played as part of a sequence. Notes are
 // never cut short — clicking a second one leaves the first still sounding — so
 // an earlier ring has to outlive the click that follows it.
-function ring(selector, ms = NOTE_MS) {
+function ring(selector, ms = NOTE_MS, by = BY_CLICK) {
   const cards = document.querySelectorAll(selector);
   cards.forEach((el) => {
+    el._ringBy = by;
     // Hand the audio timing to CSS so the animation runs exactly as long as the tone.
     el.style.setProperty('--ring-ms', `${ms}ms`);
     // Re-adding the class to a card that already has it is no change as far as
@@ -544,13 +551,13 @@ let ringTimers = [];
 let ringingCards = [];
 function ringSequence(notes) {
   ringTimers = notes.map(({ midi, at, ms }) => setTimeout(() => {
-    ringingCards.push(...ring(cardsOf(midi), ms));
+    ringingCards.push(...ring(cardsOf(midi), ms, BY_SEQUENCE));
   }, at));
 }
 
 function endRings() {
   ringTimers.forEach(clearTimeout);
-  ringingCards.forEach(unring);
+  ringingCards.forEach((el) => { if (el._ringBy === BY_SEQUENCE) unring(el); });
   ringTimers = [];
   ringingCards = [];
 }
