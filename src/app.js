@@ -684,10 +684,11 @@ function initKeySelect() {
   };
   const openMenu = () => {
     open = true;
-    // How far the list may run before it hits the edge of the window (the CSS
-    // caps it at all 12 keys), dropping down unless the whole list would fit
-    // above and not below. The floor keeps a couple of rows visible in a window
-    // too short for even that.
+    // How far the list may run before it hits the edge of the window; the CSS
+    // caps that at all 12 keys. It drops down unless the list overruns the room
+    // below and there is more of it above — a phone held landscape leaves next
+    // to nothing under the button. The floor keeps a couple of rows in view
+    // where neither side can hold the whole list.
     const { top, bottom } = btn.getBoundingClientRect();
     const below = window.innerHeight - bottom - 22;
     const above = top - 22;
