@@ -375,10 +375,23 @@ function titleText() {
 
 // Line under the title: the tonics the same harp serves in 2nd and 3rd position.
 // 1st position is the harp key, already in the title.
-function positionsText() {
-  return positionKeys(state.key)
+function positionsText(key = state.key) {
+  return positionKeys(key)
     .map((p) => `${p.name} position ${p.label}${p.nick ? ` (${p.nick})` : ''}`)
     .join(' · ');
+}
+
+// The same tonics as a menu annotation — "2nd G · 3rd Dm". Terse because it sits
+// beside every key in the dropdown, where the pattern repeats down the list; the
+// tonics themselves are picked out as the line under the title picks them out.
+function positionsBriefNodes(key) {
+  const frag = document.createDocumentFragment();
+  positionKeys(key).forEach((p, i) => {
+    const tonic = document.createElement('b');
+    tonic.textContent = withMusicAccidentals(p.label);
+    frag.append(`${i ? ' · ' : ''}${p.name} `, tonic);
+  });
+  return frag;
 }
 
 function renderPositions() {
@@ -787,7 +800,15 @@ function initKeySelect() {
     li.id = `key-opt-${i}`;
     li.setAttribute('role', 'option');
     li.dataset.key = k; // keep the raw key for logic
-    li.textContent = withMusicAccidentals(k);
+    const keyEl = document.createElement('span');
+    keyEl.className = 'cbx-opt-key';
+    keyEl.textContent = withMusicAccidentals(k);
+    const posEl = document.createElement('span');
+    posEl.className = 'cbx-opt-pos';
+    posEl.append(positionsBriefNodes(k));
+    li.append(keyEl, posEl);
+    // Spelled out for screen readers, which would read the terse form as noise.
+    li.setAttribute('aria-label', withMusicAccidentals(`${k} harp, ${positionsText(k)}`));
     li.setAttribute('aria-selected', String(k === state.key));
     menu.appendChild(li);
   });
@@ -806,6 +827,17 @@ function initKeySelect() {
   };
   const openMenu = () => {
     open = true;
+    // How far the list may run before it hits the edge of the window; the CSS
+    // caps that at all 12 keys. It drops down unless the list overruns the room
+    // below and there is more of it above — a phone held landscape leaves next
+    // to nothing under the button. Whatever is left over shows as many rows as
+    // it holds and scrolls the rest, rather than running off-screen.
+    const { top, bottom } = btn.getBoundingClientRect();
+    const below = window.innerHeight - bottom - 22;
+    const above = top - 22;
+    const up = below < Math.min(menu.scrollHeight, above);
+    menu.classList.toggle('above', up);
+    menu.style.setProperty('--menu-room', `${Math.max(0, Math.round(up ? above : below))}px`);
     menu.classList.add('open');
     btn.setAttribute('aria-expanded', 'true');
     setActive(KEY_ORDER.indexOf(state.key));
