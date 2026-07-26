@@ -7,6 +7,7 @@ Live at [harmonica.wbou.de](https://harmonica.wbou.de/).
 ## Features
 
 - Type a chord (`C`, `Am7`, `E7`, `F#9`, `Cmaj7`, …) or a scale (`C Blues`, `Em Pentatonic`, `D Dorian`, …) — or a bare note list (`C E G`) — and every hole/technique that plays a target note lights up, labelled with its interval degree.
+- **Type-ahead**: once you've typed a root note, the field offers the chords and scales that can follow it (`G` → `Gm7`, `G Blues`, `G Mixolydian`, …), filtered as you keep typing (`G pent` → the two pentatonics) and pickable with the arrow keys.
 - The **root** is picked out; for a scale the **tonic-triad** notes (3rd & 5th) are marked more strongly than the remaining passing tones.
 - The **tab strip** under the harp runs the selection low to high in standard tab (`1 -1' -1 -2'' -2 / 3 …`), the order you'd actually play it; a note the enabled techniques can't reach keeps its place as a dashed ✕ socket, so the gaps a setting leaves in a scale stay visible.
 - Switch the **harp key** (G through F#) and the whole chart transposes.
