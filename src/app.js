@@ -436,7 +436,7 @@ function render() {
   document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
   document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Chord & Scale Finder`;
   document.getElementById('play').disabled = matchedMidis().length === 0;
-  fitHarp(); // the tab line's height feeds the scaled wrapper
+  fitHarp(); // the tab strip's height feeds the scaled wrapper
   syncURL();
 }
 

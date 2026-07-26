@@ -453,7 +453,7 @@ body::after {
 .harp-area {
   position: relative;
   padding: 0 30px; /* gutters that hold the side labels */
-  container-type: inline-size; /* the tab line sizes its keys off the harp width */
+  container-type: inline-size; /* the tab strip sizes its keys off the harp width */
 }
 .side-label {
   position: absolute;

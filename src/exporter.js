@@ -9,8 +9,8 @@ const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, TITLE_GAP = 12;
 const GUTTER = 30; // side gutters holding the vertical BLOW / DRAW labels
 const ROW_H = [0, 50, 50, 70, 38, 70, 50, 50, 50]; // 1-indexed: rows 1..8
 const GRID_W = 10 * COL_W + 9 * GAP_X;
-// Tab line below the harp, at the same fractions of the harp width as the cqw
-// values in styles.css — so a full 7-note scale fits one line here too.
+// Tab strip below the harp, at the same fractions of the harp width as the cqw
+// values in styles.css — so a full 7-note scale fits one row here too.
 const cq = (n) => Math.round(GRID_W * n / 100);
 const TAB_TOP = cq(2.1), TAB_H = cq(3.6), TAB_GAP = cq(0.58), TAB_PAD_X = cq(0.66),
   TAB_MIN_W = cq(2.8), TAB_RADIUS = cq(0.75), TAB_NAME_TOP = cq(0.35), TAB_NAME_H = cq(1.4);
@@ -65,7 +65,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// The tab strip's keys, measured and wrapped into centered lines of at most
+// The tab strip's keys, measured and wrapped into centered rows of at most
 // `maxW`. Returns [] when nothing is selected.
 function layoutTabStrip(parsed, harp, show, maxW) {
   if (!parsed) return [];
@@ -79,15 +79,15 @@ function layoutTabStrip(parsed, harp, show, maxW) {
       return { ...k, name, w };
     });
 
-  const lines = [];
-  let line = null;
+  const rows = [];
+  let row = null;
   for (const k of keys) {
-    if (line && line.w + TAB_GAP + k.w > maxW) line = null;
-    if (!line) { line = { keys: [], w: -TAB_GAP }; lines.push(line); }
-    line.keys.push(k);
-    line.w += TAB_GAP + k.w;
+    if (row && row.w + TAB_GAP + k.w > maxW) row = null;
+    if (!row) { row = { keys: [], w: -TAB_GAP }; rows.push(row); }
+    row.keys.push(k);
+    row.w += TAB_GAP + k.w;
   }
-  return lines;
+  return rows;
 }
 
 export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title }) {
@@ -104,8 +104,8 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   const gridBottom = y - GAP_Y; // last visible row's bottom, without its trailing gap
 
   const width = PAD * 2 + GUTTER * 2 + GRID_W;
-  const tabLines = layoutTabStrip(parsed, harp, show, GRID_W);
-  const tabH = tabLines.length ? TAB_TOP + tabLines.length * (TAB_ROW_H + TAB_GAP) - TAB_GAP : 0;
+  const tabRows = layoutTabStrip(parsed, harp, show, GRID_W);
+  const tabH = tabRows.length ? TAB_TOP + tabRows.length * (TAB_ROW_H + TAB_GAP) - TAB_GAP : 0;
   const height = gridBottom + tabH + PAD;
 
   const dpr = 2; // retina-crisp export
@@ -241,11 +241,11 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   }
 
   // Tab strip: the same keys as the row under the harp on screen, wrapped into
-  // as many lines as the harp's width needs.
+  // as many rows as the harp's width needs.
   let tabY = gridBottom + TAB_TOP;
-  for (const line of tabLines) {
-    let tabX = (width - line.w) / 2;
-    for (const k of line.keys) {
+  for (const row of tabRows) {
+    let tabX = (width - row.w) / 2;
+    for (const k of row.keys) {
       ctx.save();
       roundRect(ctx, tabX, tabY, k.w, TAB_H, TAB_RADIUS);
       if (k.missing) {
