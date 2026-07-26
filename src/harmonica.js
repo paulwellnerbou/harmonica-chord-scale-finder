@@ -66,6 +66,7 @@ const SUGGESTIONS = [
   { fifths: 2, suffix: ' Blues' },
   { fifths: 0, suffix: '', note: 'the blow chord' },
   { fifths: 0, suffix: ' Major Pentatonic' },
+  { fifths: 1, suffix: ' Major Pentatonic' },
   { fifths: 1, suffix: '7', note: 'the draw chord' },
   { fifths: 1, suffix: ' Mixolydian' },
   { fifths: 2, suffix: ' Dorian' },
