@@ -2,7 +2,7 @@
 
 A single-page web app that shows where any chord or scale sits on a 10-hole diatonic (Richter-tuned) harmonica — which hole and technique (blow, draw, bend, overblow/overdraw) plays each note, for any key of harp. The layout mirrors the [harmonica.com bending tool](https://www.harmonica.com/bending-tool/).
 
-Live at [harmonica.wbou.dev](https://harmonica.wbou.dev/).
+Live at [harmonica.wbou.de](https://harmonica.wbou.de/).
 
 ## Features
 
@@ -35,6 +35,8 @@ then open `http://localhost:8000`.
 - `src/exporter.js` — native-canvas PNG export (copy / download)
 - `src/app.js` — features, state and DOM wiring
 
-## Deploy
+## Hosting
 
-GitHub Pages, serving the repo straight from `main`. `CNAME` holds the custom domain and `.nojekyll` keeps the `src/` modules served untouched. Every push to `main` redeploys.
+Plain static files with no build step — serve the repo root with any web server.
+Every path is relative, so a subdirectory works too. GitHub Pages works as-is;
+`.nojekyll` just switches its Jekyll step off.
