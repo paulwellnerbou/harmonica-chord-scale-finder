@@ -656,6 +656,74 @@ body::after {
     visibility 0s linear 0.22s;
 }
 
+/* --- Sounding note ---------------------------------------------------------*/
+/* Click a note and a spark runs around the border of the cards showing it, for
+   the note's whole click-to-silence span (--ring-ms, handed over by the audio
+   module; the spark's own fade-in covers the lead-in before the tone starts).
+   Registering the angle is what lets it animate at all: unregistered custom
+   properties don't interpolate. */
+@property --ring-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+/* The spark is the card's own border colour lighting up, so it never reads as a
+   stray accent laid over the highlight palette. Ordered so the highlight states
+   win over the base note type, as they do for the border itself. Two borders are
+   too washed out to spark with as they stand, and take the nearest solid tone of
+   their own family instead. */
+.box.reed { --ring: color-mix(in srgb, var(--reed-border) 62%, var(--box-ink)); } /* barely darker than its own fill */
+.box.bend { --ring: var(--bend-border); }
+.box.over { --ring: var(--over-border); }
+.chip.miss { --ring: var(--faint); } /* its --line border is near-transparent */
+.box.tone, .chip.tone { --ring: var(--tone); }
+.box.match, .chip.match { --ring: var(--match); }
+.box.root, .chip.root { --ring: var(--root); }
+
+.box.is-sounding::after,
+.chip.is-sounding::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 3px; /* ring thickness: the mask keeps only this band */
+  pointer-events: none;
+  opacity: 0;
+  background: conic-gradient(from var(--ring-angle),
+    transparent 170deg,
+    color-mix(in srgb, var(--ring) 38%, transparent) 268deg,
+    var(--ring) 332deg,
+    color-mix(in srgb, var(--ring) 55%, #fff) 352deg,
+    color-mix(in srgb, var(--ring) 20%, #fff) 357deg,
+    transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: note-ring var(--ring-ms, 760ms) linear both;
+}
+/* …plus a halo, so the card reads as lit even where the spark is on its far
+   side. drop-shadow, not box-shadow: the highlight states own that one. */
+.box.is-sounding,
+.chip.is-sounding {
+  --lit: 7px;
+  animation: note-lit var(--ring-ms, 760ms) ease-out both;
+}
+/* A tab key is a fraction of a harp card, so both effects scale down with it. */
+.box.mini.is-sounding { --lit: 4px; }
+.box.mini.is-sounding::after { padding: 1.5px; }
+/* Off-selection keys can still be clicked to hear them; lift them to the same
+   level as hover does, or on touch the spark plays out at a quarter opacity. */
+.box.dim.is-sounding { opacity: 0.6; }
+@keyframes note-ring {
+  from { --ring-angle: 0deg; opacity: 0; }
+  12%  { opacity: 1; }
+  74%  { opacity: 1; }
+  to   { --ring-angle: 360deg; opacity: 0; }
+}
+@keyframes note-lit {
+  from { filter: drop-shadow(0 0 0 transparent); }
+  18%  { filter: drop-shadow(0 0 var(--lit) color-mix(in srgb, var(--ring) 85%, transparent)); }
+  to   { filter: drop-shadow(0 0 var(--lit) transparent); }
+}
+
 /* --- Tab line (the selection in playing order) -----------------------------*/
 /* Sized in cqw against the harp's own width, so the ~24 keys a 7-note scale
    needs always fit one line — and so the keys shrink together with the harp
@@ -823,6 +891,7 @@ body::after {
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 /* Each chip is a button that sounds its note, like the holes on the harp. */
 .chip {
+  position: relative; /* anchors the sounding ring */
   display: inline-flex; align-items: baseline; gap: 5px;
   padding: 5px 12px; border-radius: 999px;
   font: inherit; font-weight: 700; border: 1.5px solid;
@@ -921,6 +990,14 @@ body::after {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+  /* Killing the animation would leave the ring on its final (invisible) frame —
+     hold it still instead, so a played note is still marked on every card. */
+  .box.is-sounding::after, .chip.is-sounding::after {
+    animation-name: none;
+    opacity: 1;
+    background: var(--ring);
+  }
+  .box.is-sounding, .chip.is-sounding { animation-name: none; }
 }
 
 @media (max-width: 560px) {
