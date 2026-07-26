@@ -413,7 +413,10 @@ body::after {
   color: var(--muted);
   font-size: 0.84rem;
 }
-.harp-positions > span + span::before { content: "·"; margin-right: 9px; color: var(--faint); }
+/* Trailing separator, not leading: the line wraps between entries on narrow
+   screens, and a dot left behind on the first line reads as "continues" where
+   one carried onto the second reads as a bullet. */
+.harp-positions > span:not(:last-child)::after { content: "·"; margin-left: 9px; color: var(--faint); }
 .harp-positions b { color: var(--ink); font-weight: 700; }
 .harp-positions i { font-style: normal; color: var(--faint); }
 /* Accidental glyph inside a serif heading: draw it in the body font (which has a
