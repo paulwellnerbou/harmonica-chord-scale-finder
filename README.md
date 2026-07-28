@@ -1,6 +1,6 @@
 # Harmonica chord & scale finder
 
-A single-page web app that shows where any chord or scale sits on a 10-hole diatonic (Richter-tuned) harmonica — which hole and technique (blow, draw, bend, overblow/overdraw) plays each note, for any key of harp. The layout mirrors the [harmonica.com bending tool](https://www.harmonica.com/bending-tool/).
+A single-page web app that shows where any chord or scale sits on a 10-hole diatonic (Richter-tuned) harmonica — which hole and technique (blow, draw, bend, overblow/overdraw) plays each note, for any key of harp.
 
 Live at [harmonica.wbou.de](https://harmonica.wbou.de/).
 
