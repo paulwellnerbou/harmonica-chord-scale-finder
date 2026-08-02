@@ -2,7 +2,7 @@
 // the clipboard as a PNG. Drawn natively so we control the background — it is
 // left transparent, i.e. without the page's blue backdrop.
 
-import { degreeOf, highlightFor, withMusicAccidentals } from './theory.js';
+import { blueNotePc, degreeOf, highlightFor, withMusicAccidentals } from './theory.js';
 import { buildHarp, gridRowOf, HOLE_ROWS, tabStrip } from './harmonica.js';
 
 const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, SUB_H = 22, TITLE_GAP = 12;
@@ -55,6 +55,26 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// The blue note's inner glow, mirroring .blue-note in styles.css. Canvas
+// gradients are round, so the CSS ellipse comes from scaling a unit circle to
+// the key's proportions — hence the fill in those scaled units.
+const BLUE_NOTE = [47, 106, 208]; // --blue-note
+function blueGlow(ctx, x, y, w, h, r) {
+  const blue = (a) => `rgba(${BLUE_NOTE}, ${a})`;
+  ctx.save();
+  roundRect(ctx, x, y, w, h, r);
+  ctx.clip();
+  ctx.translate(x + w / 2, y + h / 2);
+  ctx.scale(w * 0.58, h * 0.66);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, blue(0.42));
+  g.addColorStop(0.55, blue(0.15));
+  g.addColorStop(0.8, blue(0));
+  ctx.fillStyle = g;
+  ctx.fillRect(-2, -2, 4, 4);
+  ctx.restore();
+}
+
 // The tab strip's keys, measured and wrapped into centered rows of at most
 // `maxW`. Returns [] when nothing is selected.
 function layoutTabStrip(parsed, harp, show, maxW) {
@@ -83,6 +103,7 @@ function layoutTabStrip(parsed, harp, show, maxW) {
 export function renderHarpImage({ key, tuning, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title, subtitle }) {
   const harp = buildHarp(key, tuning);
   const show = { showDrawBends, showBlowBends, showOverblow, showOverdraw };
+  const bluePc = blueNotePc(parsed);
 
   // Every box the export draws, ascending by hole so the row heights can be
   // taken from what is actually in them: a row left empty — by a technique
@@ -174,6 +195,7 @@ export function renderHarpImage({ key, tuning, parsed, triad, showDrawBends, sho
     roundRect(ctx, x, top, COL_W, h, 10);
     ctx.fill();
     ctx.stroke();
+    if (n.pc === bluePc) blueGlow(ctx, x, top, COL_W, h, 10);
 
     // Over-bar, mirroring .box.over::before at the export's larger scale (its
     // note type is 21px against the page's 18.4px, so the CSS 28x2.5 grows too).
@@ -268,6 +290,7 @@ export function renderHarpImage({ key, tuning, parsed, triad, showDrawBends, sho
       }
       ctx.stroke();
       ctx.restore();
+      if (!k.missing && k.pc === bluePc) blueGlow(ctx, tabX, tabY, k.w, TAB_H, TAB_RADIUS);
 
       ctx.fillStyle = k.missing ? inkAlpha(0.42) : COLORS.ink;
       ctx.font = TAB_FONT;
