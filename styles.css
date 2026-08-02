@@ -535,19 +535,13 @@ body::after {
   --row-8: var(--row-h);
   --row-9: var(--row-h);
   /* --tab-h is measured by fitHarp(); the rest animates with the row collapse.
-     applyBendRows() zeroes any of these the current tuning never fills. */
+     applyBendRows() zeroes any of these with nothing visible left in it. */
   --harp-h: calc(var(--row-1) + var(--row-2) + var(--row-3) + var(--reed-h) + var(--num-row)
     + var(--reed-h) + var(--row-7) + var(--row-8) + var(--row-9) + var(--tab-h, 0px));
   transition:
     --row-1 0.26s ease, --row-2 0.26s ease, --row-3 0.26s ease,
     --row-7 0.26s ease, --row-8 0.26s ease, --row-9 0.26s ease;
 }
-/* Rows 1-2 hold only blow bends, row 3 also the overblow; mirrored for rows 7-9
-   below the comb. */
-.harp-fit.hide-blow-bend { --row-1: 0px; --row-2: 0px; }
-.harp-fit.hide-blow-bend.hide-overblow { --row-3: 0px; }
-.harp-fit.hide-draw-bend { --row-8: 0px; --row-9: 0px; }
-.harp-fit.hide-draw-bend.hide-overdraw { --row-7: 0px; }
 
 .harp-area {
   position: relative;

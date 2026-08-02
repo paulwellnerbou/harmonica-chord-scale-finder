@@ -1,5 +1,5 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals, queryCompletions } from './theory.js';
-import { buildHarp, allNotes, gridRowOf, KEY_ORDER, playableNotes, positionKeys, suggestions,
+import { buildHarp, gridRowOf, KEY_ORDER, playableNotes, positionKeys, suggestions,
   tabStrip, pcOf, TUNINGS, TUNING_ORDER, DEFAULT_TUNING } from './harmonica.js';
 import { playNote, playSequence, stopSequence, primeAudio, NOTE_MS } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
@@ -328,24 +328,24 @@ window.addEventListener('resize', () => {
   fitRaf = requestAnimationFrame(fitHarp);
 });
 
-// Bend rows no reed of the current tuning reaches collapse away, so a harp that
-// bends shallower than Richter doesn't carry an empty band — and one that bends
-// deeper (harmonic minor's three-semitone 10 blow) gets the row it needs. Set
-// inline over the CSS defaults; the toggles' own collapse stays in CSS below,
-// and only ever asks for the same zero back.
+// Every bend row is as tall as what is actually in it, so no empty band is ever
+// left behind: a row this tuning never reaches collapses (Easy Third bends no
+// deeper than a semitone), and so does one whose notes are all switched off. It
+// takes both to decide — the overblow row shares with the first blow bend, which
+// half the tunings here haven't got, so hiding overblows can empty it on its
+// own. Set inline for that reason; the classes below only fade the boxes.
 const BEND_ROWS = [1, 2, 3, 7, 8, 9];
 function applyBendRows(harp, fit = document.querySelector('.harp-fit')) {
-  const used = new Set(allNotes(harp).map(gridRowOf));
+  const shown = new Set(playableNotes(harp, state).map(gridRowOf));
   BEND_ROWS.forEach((r) => {
-    if (used.has(r)) fit.style.removeProperty(`--row-${r}`);
+    if (shown.has(r)) fit.style.removeProperty(`--row-${r}`);
     else fit.style.setProperty(`--row-${r}`, '0px');
   });
 }
 
-// Show/hide bends & overblows purely in CSS so they fade in and out instead of
-// popping. Kept off the render path so it never rebuilds the harp mid-animation.
-// The classes sit on the fit wrapper because the collapsing row heights they
-// drive are also read by the side labels and the wrapper's own height.
+// Fade bends & overblows in and out rather than popping them. Kept off the
+// render path so it never rebuilds the harp mid-animation; the rows they leave
+// behind are applyBendRows' business.
 function applyVisibility(fit = document.querySelector('.harp-fit')) {
   fit.classList.toggle('hide-draw-bend', !state.showDrawBends);
   fit.classList.toggle('hide-blow-bend', !state.showBlowBends);
@@ -598,8 +598,10 @@ function initControls() {
   });
 
   // Toggling a technique animates via CSS; only the info + Play button need a
-  // refresh (rebuilding the harp here would cancel the fade).
+  // refresh (rebuilding the harp here would cancel the fade). The rows are
+  // re-measured because switching a technique off can empty one.
   const onToggle = () => {
+    applyBendRows(buildHarp(state.key, state.tuning));
     applyVisibility();
     renderTabStrip();
     renderInfo();
