@@ -1,5 +1,6 @@
 import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals, queryCompletions } from './theory.js';
-import { buildHarp, KEY_ORDER, playableNotes, positionKeys, suggestions, tabStrip, pcOf } from './harmonica.js';
+import { buildHarp, allNotes, gridRowOf, KEY_ORDER, playableNotes, positionKeys, suggestions,
+  tabStrip, pcOf, TUNINGS, TUNING_ORDER, DEFAULT_TUNING } from './harmonica.js';
 import { playNote, playSequence, stopSequence, primeAudio, NOTE_MS } from './audio.js';
 import { renderHarpImage, copyCanvas, downloadCanvas } from './exporter.js';
 
@@ -14,6 +15,7 @@ const SHARE_LABEL = `${LINK_ICON}<span>Copy link</span>`;
 
 const state = {
   key: 'C',
+  tuning: DEFAULT_TUNING,
   query: '',
   parsed: null,
   triad: null, // tonic-triad pitch classes when a scale is selected, else null
@@ -39,6 +41,7 @@ function syncURL() {
   const q = state.query.trim();
   if (q) params.set('q', q);
   if (state.key !== 'C') params.set('key', state.key);
+  if (state.tuning !== DEFAULT_TUNING) params.set('tuning', state.tuning);
   const hidden = Object.entries(TOGGLE_PARAM).filter(([k]) => !state[k]).map(([, v]) => v);
   if (hidden.length) params.set('hide', hidden.join(','));
   const qs = params.toString();
@@ -50,6 +53,8 @@ function applyURLState() {
   const params = new URLSearchParams(location.search);
   const key = params.get('key');
   if (key && KEY_ORDER.includes(key)) state.key = key;
+  const tuning = params.get('tuning');
+  if (tuning && TUNING_ORDER.includes(tuning)) state.tuning = tuning;
   const hidden = new Set((params.get('hide') || '').split(',').filter(Boolean));
   Object.entries(TOGGLE_PARAM).forEach(([k, v]) => { if (hidden.has(v)) state[k] = false; });
   return params.get('q') || '';
@@ -65,19 +70,6 @@ async function copyLink(btn) {
   btn.innerHTML = `${CHECK_ICON}<span>Copied!</span>`;
   clearTimeout(btn._t);
   btn._t = setTimeout(() => { btn.innerHTML = SHARE_LABEL; btn.classList.remove('is-done'); }, 1500);
-}
-
-// Which grid row each note type/depth occupies. Blow techniques sit above the
-// number bar, draw techniques below it; deeper bends sit further from center.
-function gridRow(type, depth) {
-  switch (type) {
-    case 'blow-bend': return depth === 1 ? 2 : 1;
-    case 'overblow': return 2;
-    case 'blow': return 3;
-    case 'draw': return 5;
-    case 'draw-bend': return 5 + depth; // 6, 7, 8
-    case 'overdraw': return 6;
-  }
 }
 
 const TECH_TAG = { overblow: 'OB', overdraw: 'OD' };
@@ -170,7 +162,7 @@ function makeBox(note) {
   el.dataset.pc = String(note.pc);
   el.dataset.midi = String(note.midi);
   el.style.gridColumn = String(note.hole);
-  el.style.gridRow = String(gridRow(note.type, note.depth));
+  el.style.gridRow = String(gridRowOf(note));
   el.title = `Hole ${note.hole} · ${labelForType(note)} · ${note.name}`;
 
   const name = document.createElement('span');
@@ -214,7 +206,7 @@ function labelForType(note) {
 }
 
 function renderHarp() {
-  const harp = buildHarp(state.key);
+  const harp = buildHarp(state.key, state.tuning);
   const grid = document.getElementById('harp');
   grid.innerHTML = '';
 
@@ -236,7 +228,7 @@ function renderHarp() {
     const num = document.createElement('div');
     num.className = 'hole-num';
     num.style.gridColumn = String(h);
-    num.style.gridRow = '4';
+    num.style.gridRow = '5';
     num.textContent = String(h);
     grid.appendChild(num);
 
@@ -248,6 +240,7 @@ function renderHarp() {
     if (cell.overdraw) grid.appendChild(makeBox(cell.overdraw));
   }
 
+  applyBendRows(harp);
   applyVisibility();
 }
 
@@ -256,7 +249,7 @@ function renderHarp() {
 // reach marked ✕ in the place they'd have taken.
 function renderTabStrip() {
   const row = document.getElementById('tab-strip');
-  const keys = state.parsed ? tabStrip(buildHarp(state.key), state, state.parsed.pcs) : [];
+  const keys = state.parsed ? tabStrip(buildHarp(state.key, state.tuning), state, state.parsed.pcs) : [];
   row.hidden = keys.length === 0;
   row.innerHTML = '';
   keys.forEach((k) => {
@@ -335,6 +328,20 @@ window.addEventListener('resize', () => {
   fitRaf = requestAnimationFrame(fitHarp);
 });
 
+// Bend rows no reed of the current tuning reaches collapse away, so a harp that
+// bends shallower than Richter doesn't carry an empty band — and one that bends
+// deeper (harmonic minor's three-semitone 10 blow) gets the row it needs. Set
+// inline over the CSS defaults; the toggles' own collapse stays in CSS below,
+// and only ever asks for the same zero back.
+const BEND_ROWS = [1, 2, 3, 7, 8, 9];
+function applyBendRows(harp, fit = document.querySelector('.harp-fit')) {
+  const used = new Set(allNotes(harp).map(gridRowOf));
+  BEND_ROWS.forEach((r) => {
+    if (used.has(r)) fit.style.removeProperty(`--row-${r}`);
+    else fit.style.setProperty(`--row-${r}`, '0px');
+  });
+}
+
 // Show/hide bends & overblows purely in CSS so they fade in and out instead of
 // popping. Kept off the render path so it never rebuilds the harp mid-animation.
 // The classes sit on the fit wrapper because the collapsing row heights they
@@ -367,26 +374,41 @@ function selectionName() {
   return 'Notes';
 }
 
+// What the harp is, for the title and the image: the key, plus the tuning where
+// it isn't the standard Richter one.
+function harpName() {
+  const tuning = state.tuning === DEFAULT_TUNING ? '' : ` (${TUNINGS[state.tuning].name})`;
+  return `Harp in ${state.key}${tuning}`;
+}
+
 // Title shown on the page, the browser tab and baked into the copied image.
 function titleText() {
   const what = selectionName();
-  return what ? `${what} · Harp in ${state.key}` : `Harp in ${state.key}`;
+  return what ? `${what} · ${harpName()}` : harpName();
 }
 
-// Line under the title: the tonics the same harp serves in 2nd and 3rd position.
-// 1st position is the harp key, already in the title.
-function positionsText(key = state.key) {
-  return positionKeys(key)
+// Positions spelled out — "2nd position G (Cross harp) · 3rd position Dm" — for
+// the line under the title, the exported image and the key menu's screen-reader
+// labels. What is in the list is the caller's choice; see positionKeys.
+function positionsText(positions) {
+  return positions
     .map((p) => `${p.name} position ${p.label}${p.nick ? ` (${p.nick})` : ''}`)
     .join(' · ');
 }
 
-// The same tonics as a menu annotation — "2nd G · 3rd Dm". Terse because it sits
+// The positions worth annotating a key with in the dropdown. 1st position is
+// left out there: it is the option's own key, and names the same mode all the
+// way down the list.
+function crossPositions(key) {
+  return positionKeys(key, state.tuning).filter((p) => p.fifths !== 0);
+}
+
+// Those tonics as a menu annotation — "2nd G · 3rd Dm". Terse because it sits
 // beside every key in the dropdown, where the pattern repeats down the list; the
 // tonics themselves are picked out as the line under the title picks them out.
 function positionsBriefNodes(key) {
   const frag = document.createDocumentFragment();
-  positionKeys(key).forEach((p, i) => {
+  crossPositions(key).forEach((p, i) => {
     const tonic = document.createElement('b');
     tonic.textContent = withMusicAccidentals(p.label);
     frag.append(`${i ? ' · ' : ''}${p.name} `, tonic);
@@ -395,7 +417,7 @@ function positionsBriefNodes(key) {
 }
 
 function renderPositions() {
-  const html = positionKeys(state.key).map((p) => {
+  const html = positionKeys(state.key, state.tuning).map((p) => {
     const hint = escapeHtml(withMusicAccidentals(p.hint));
     const nick = p.nick ? ` <i>(${escapeHtml(p.nick)})</i>` : '';
     return `<span title="${hint}">${p.name} position <b>${accidentalsHtml(p.label)}</b>${nick}</span>`;
@@ -408,13 +430,15 @@ function renderPositions() {
 // every keystroke would take the focus off a pill the moment it was activated.
 let suggestedFor = null;
 function renderSuggestions() {
-  if (suggestedFor === state.key) return;
-  suggestedFor = state.key;
-  const pills = suggestions(state.key).map(({ q, hint }) =>
+  const built = `${state.key} ${state.tuning}`;
+  if (suggestedFor === built) return;
+  suggestedFor = built;
+  const pills = suggestions(state.key, state.tuning).map(({ q, hint }) =>
     `<button type="button" class="example" data-q="${escapeHtml(q)}" title="${escapeHtml(hint)}">${withMusicAccidentals(escapeHtml(q))}</button>`);
   const article = /^[AEF]/.test(state.key) ? 'an' : 'a'; // "an F harp", "a G harp"
+  const tuning = state.tuning === DEFAULT_TUNING ? '' : ` (${escapeHtml(TUNINGS[state.tuning].name)})`;
   document.getElementById('examples').innerHTML =
-    `<span>Common on ${article} ${withMusicAccidentals(escapeHtml(state.key))} harp:</span>${pills.join('')}`;
+    `<span>Common on ${article} ${withMusicAccidentals(escapeHtml(state.key))} harp${tuning}:</span>${pills.join('')}`;
 }
 
 function renderInfo() {
@@ -436,7 +460,7 @@ function renderInfo() {
   //   plain      — blow/draw + whichever bends are shown (no over techniques)
   //   reachable  — plain + whichever overblows/overdraws are shown
   //   overOnly   — obtainable only via an over technique (drives the ° marker)
-  const harp = buildHarp(state.key);
+  const harp = buildHarp(state.key, state.tuning);
   const plain = new Set();
   const reachable = new Set();
   const overOnly = new Set();
@@ -488,7 +512,7 @@ function renderInfo() {
 // current toggles, ascending — what the Play button sounds.
 function matchedNotes() {
   if (!state.parsed) return [];
-  return playableNotes(buildHarp(state.key), state).filter((n) => state.parsed.pcs.includes(n.pc));
+  return playableNotes(buildHarp(state.key, state.tuning), state).filter((n) => state.parsed.pcs.includes(n.pc));
 }
 
 // Unique pitches of the above; already ascending, so the Set keeps that order.
@@ -528,7 +552,21 @@ function initControls() {
   input.addEventListener('input', () => setQuery(input.value));
 
   initTypeahead();
-  initKeySelect();
+
+  const keySelect = initCombobox({
+    id: 'key',
+    options: keyOptions,
+    selected: () => state.key,
+    onChoose: (k) => { state.key = k; render(); },
+  });
+  initCombobox({
+    id: 'tuning',
+    optClass: 'stacked',
+    options: tuningOptions,
+    selected: () => state.tuning,
+    // The keys' position annotations are read off the tuning, so they follow it.
+    onChoose: (t) => { state.tuning = t; render(); keySelect.refresh(); },
+  });
 
   // Toggling a technique animates via CSS; only the info + Play button need a
   // refresh (rebuilding the harp here would cancel the fade).
@@ -786,37 +824,89 @@ function initTypeahead() {
   });
 }
 
-// Accessible combobox for the harp key (a native <select> can't animate its
-// popup). Focus stays on the button; the active option is tracked with
-// aria-activedescendant.
-function initKeySelect() {
-  const btn = document.getElementById('key-btn');
-  const menu = document.getElementById('key-menu');
-  const valEl = document.getElementById('key-val');
-
-  KEY_ORDER.forEach((k, i) => {
-    const li = document.createElement('li');
-    li.className = 'cbx-opt';
-    li.id = `key-opt-${i}`;
-    li.setAttribute('role', 'option');
-    li.dataset.key = k; // keep the raw key for logic
+// The harp keys as combobox options, each annotated with the tonics it serves.
+function keyOptions() {
+  return KEY_ORDER.map((k) => {
     const keyEl = document.createElement('span');
     keyEl.className = 'cbx-opt-key';
     keyEl.textContent = withMusicAccidentals(k);
     const posEl = document.createElement('span');
     posEl.className = 'cbx-opt-pos';
     posEl.append(positionsBriefNodes(k));
-    li.append(keyEl, posEl);
-    // Spelled out for screen readers, which would read the terse form as noise.
-    li.setAttribute('aria-label', withMusicAccidentals(`${k} harp, ${positionsText(k)}`));
-    li.setAttribute('aria-selected', String(k === state.key));
-    menu.appendChild(li);
+    return {
+      value: k,
+      text: withMusicAccidentals(k),
+      nodes: [keyEl, posEl],
+      // Spelled out for screen readers, which would read the terse form as noise.
+      ariaLabel: withMusicAccidentals([`${k} harp`, positionsText(crossPositions(k))].filter(Boolean).join(', ')),
+    };
   });
-  valEl.textContent = withMusicAccidentals(state.key); // reflect key seeded from the URL
+}
 
-  const opts = () => [...menu.children];
-  let activeIndex = KEY_ORDER.indexOf(state.key);
+// The tunings, each over a line saying what it is and who makes it, under the
+// heading for the kind of harp it is — there are too many to scan as one list.
+function tuningOptions() {
+  return TUNING_ORDER.map((id) => {
+    const { name, desc, group } = TUNINGS[id];
+    const nameEl = document.createElement('span');
+    nameEl.className = 'cbx-opt-name';
+    nameEl.textContent = name;
+    const descEl = document.createElement('span');
+    descEl.className = 'cbx-opt-sub';
+    descEl.textContent = desc;
+    return { value: id, text: name, group, nodes: [nameEl, descEl], ariaLabel: `${name} tuning. ${desc}` };
+  });
+}
+
+// Accessible combobox (a native <select> can't animate its popup). Focus stays
+// on the button; the active option is tracked with aria-activedescendant.
+// `options()` is re-read on every rebuild, since the keys' annotations follow
+// the tuning — picking one restates the other.
+function initCombobox({ id, optClass, options, selected, onChoose }) {
+  const btn = document.getElementById(`${id}-btn`);
+  const menu = document.getElementById(`${id}-menu`);
+  const valEl = document.getElementById(`${id}-val`);
+
+  // Options can be nested in group boxes, so the rows are collected rather than
+  // read off the menu's children.
+  const opts = () => [...menu.querySelectorAll('.cbx-opt')];
+  const selectedIndex = () => Math.max(0, opts().findIndex((o) => o.dataset.value === selected()));
+  let activeIndex = 0;
   let open = false;
+
+  const build = () => {
+    menu.innerHTML = '';
+    let list = menu; // options land here, or in the open group's own list
+    let groupName = null;
+    options().forEach((o, i) => {
+      if (o.group && o.group !== groupName) {
+        groupName = o.group;
+        const group = document.createElement('li');
+        group.className = 'cbx-group';
+        group.setAttribute('role', 'group');
+        group.setAttribute('aria-label', groupName);
+        const head = document.createElement('span');
+        head.className = 'cbx-head';
+        head.setAttribute('aria-hidden', 'true'); // the group's own label says this
+        head.textContent = groupName;
+        list = document.createElement('ul');
+        list.setAttribute('role', 'none'); // grouping is the <li>'s job, not this list's
+        group.append(head, list);
+        menu.appendChild(group);
+      }
+      const li = document.createElement('li');
+      li.className = optClass ? `cbx-opt ${optClass}` : 'cbx-opt';
+      li.id = `${id}-opt-${i}`;
+      li.setAttribute('role', 'option');
+      li.dataset.value = o.value;
+      li.append(...o.nodes);
+      li.setAttribute('aria-label', o.ariaLabel);
+      li.setAttribute('aria-selected', String(o.value === selected()));
+      if (o.value === selected()) valEl.textContent = o.text;
+      list.appendChild(li);
+    });
+  };
+  build(); // reflects the state seeded from the URL
 
   const setActive = (i) => {
     const list = opts();
@@ -828,19 +918,25 @@ function initKeySelect() {
   const openMenu = () => {
     open = true;
     // How far the list may run before it hits the edge of the window; the CSS
-    // caps that at all 12 keys. It drops down unless the list overruns the room
-    // below and there is more of it above — a phone held landscape leaves next
-    // to nothing under the button. Whatever is left over shows as many rows as
-    // it holds and scrolls the rest, rather than running off-screen.
-    const { top, bottom } = btn.getBoundingClientRect();
+    // caps that at the whole list. It drops down unless the list overruns the
+    // room below and there is more of it above — a phone held landscape leaves
+    // next to nothing under the button. Whatever is left over shows as many rows
+    // as it holds and scrolls the rest, rather than running off-screen.
+    const { top, bottom, left, right } = btn.getBoundingClientRect();
     const below = window.innerHeight - bottom - 22;
     const above = top - 22;
     const up = below < Math.min(menu.scrollHeight, above);
     menu.classList.toggle('above', up);
     menu.style.setProperty('--menu-room', `${Math.max(0, Math.round(up ? above : below))}px`);
+    // A menu wider than its button (the tunings) grows to whichever side has the
+    // room, and no further than the window edge; one no wider ignores both.
+    const toRight = window.innerWidth - left - 16;
+    const toLeft = right - 16;
+    menu.classList.toggle('to-left', toLeft > toRight);
+    menu.style.setProperty('--menu-width', `${Math.round(Math.max(toRight, toLeft))}px`);
     menu.classList.add('open');
     btn.setAttribute('aria-expanded', 'true');
-    setActive(KEY_ORDER.indexOf(state.key));
+    setActive(selectedIndex()); // every opening starts from what is actually chosen
   };
   const closeMenu = (focus) => {
     open = false;
@@ -849,18 +945,18 @@ function initKeySelect() {
     btn.removeAttribute('aria-activedescendant');
     if (focus) btn.focus();
   };
-  const choose = (k) => {
-    state.key = k;
-    valEl.textContent = withMusicAccidentals(k);
-    opts().forEach((o) => o.setAttribute('aria-selected', String(o.dataset.key === k)));
-    render();
+  const choose = (value) => {
+    onChoose(value);
+    build(); // moves the tick, and the button to the new value
     closeMenu(true);
   };
 
-  btn.addEventListener('click', (e) => { e.stopPropagation(); open ? closeMenu() : openMenu(); });
+  // The click reaches document on purpose: that is what shuts any other popup
+  // that was open — each one ignores clicks landing inside its own control.
+  btn.addEventListener('click', () => { open ? closeMenu() : openMenu(); });
   menu.addEventListener('click', (e) => {
     const li = e.target.closest('.cbx-opt');
-    if (li) choose(li.dataset.key);
+    if (li) choose(li.dataset.value);
   });
   btn.addEventListener('keydown', (e) => {
     if (!open) {
@@ -872,17 +968,20 @@ function initKeySelect() {
       case 'ArrowUp': e.preventDefault(); setActive(activeIndex - 1); break;
       case 'Home': e.preventDefault(); setActive(0); break;
       case 'End': e.preventDefault(); setActive(opts().length - 1); break;
-      case 'Enter': case ' ': e.preventDefault(); choose(opts()[activeIndex].dataset.key); break;
+      case 'Enter': case ' ': e.preventDefault(); choose(opts()[activeIndex].dataset.value); break;
       case 'Escape': case 'Tab': closeMenu(e.key === 'Escape'); break;
     }
   });
-  document.addEventListener('click', (e) => { if (open && !e.target.closest('#key-cbx')) closeMenu(); });
+  document.addEventListener('click', (e) => { if (open && !e.target.closest(`#${id}-cbx`)) closeMenu(); });
+
+  return { refresh: build };
 }
 
 // Build the export canvas plus a filename slug for the current selection.
 function buildImage() {
   const canvas = renderHarpImage({
     key: state.key,
+    tuning: state.tuning,
     parsed: state.parsed,
     triad: state.triad,
     showDrawBends: state.showDrawBends,
@@ -890,7 +989,7 @@ function buildImage() {
     showOverblow: state.showOverblow,
     showOverdraw: state.showOverdraw,
     title: withMusicAccidentals(titleText()),
-    subtitle: withMusicAccidentals(positionsText()),
+    subtitle: withMusicAccidentals(positionsText(positionKeys(state.key, state.tuning))),
   });
   // Slug stays ascii (from the unformatted title) for a clean filename.
   const slug = titleText().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');
@@ -919,8 +1018,8 @@ function initImageButton() {
     doneTimer = setTimeout(() => { btn.classList.remove('is-done'); btn.innerHTML = IMG_ICON; }, 1500);
   };
 
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
+  // Bubbles to document, which is how the key and tuning menus learn to close.
+  btn.addEventListener('click', () => {
     const willOpen = !menu.classList.contains('open');
     menu.classList.toggle('open', willOpen);
     btn.setAttribute('aria-expanded', String(willOpen));

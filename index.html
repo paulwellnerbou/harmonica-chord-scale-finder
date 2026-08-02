@@ -27,7 +27,7 @@
   <meta property="og:site_name" content="Harmonica Chord &amp; Scale Finder" />
   <meta property="og:url" content="https://harmonica.wbou.de/" />
   <meta property="og:title" content="Harmonica Chord &amp; Scale Finder" />
-  <meta property="og:description" content="Which holes, bends &amp; overblows play your chord or scale on a diatonic (Richter) harp." />
+  <meta property="og:description" content="Which holes, bends &amp; overblows play your chord or scale on a diatonic harp, in any tuning." />
   <meta property="og:image" content="https://harmonica.wbou.de/og.png" />
   <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
@@ -37,7 +37,7 @@
        being present then look only for twitter:*, so mirror them. -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Harmonica Chord &amp; Scale Finder" />
-  <meta name="twitter:description" content="Which holes, bends &amp; overblows play your chord or scale on a diatonic (Richter) harp." />
+  <meta name="twitter:description" content="Which holes, bends &amp; overblows play your chord or scale on a diatonic harp, in any tuning." />
   <meta name="twitter:image" content="https://harmonica.wbou.de/og.png" />
   <meta name="twitter:image:alt" content="Harmonica Chord &amp; Scale Finder — a 10-hole diatonic harp layout with the notes of a C major chord lit up." />
 </head>
@@ -57,7 +57,7 @@
       <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="17.2" width="35" height="5.6" rx="1"/><rect x="6.5" y="13.1" width="27" height="4.3" rx="1.1"/><rect x="6.5" y="22.6" width="27" height="4.3" rx="1.1"/><g fill="currentColor" stroke="none"><rect x="8.3" y="18.3" width="1.6" height="3.4" rx="0.4"/><rect x="11.9" y="18.3" width="1.6" height="3.4" rx="0.4"/><rect x="15.5" y="18.3" width="1.6" height="3.4" rx="0.4"/><rect x="19.1" y="18.3" width="1.6" height="3.4" rx="0.4"/><rect x="22.7" y="18.3" width="1.6" height="3.4" rx="0.4"/><rect x="26.3" y="18.3" width="1.6" height="3.4" rx="0.4"/><rect x="29.9" y="18.3" width="1.6" height="3.4" rx="0.4"/></g></svg>
     </span>
     <h1>Harmonica Chord &amp; Scale Finder</h1>
-    <p class="tagline">Which holes, bends &amp; overblows play your chord or scale on a diatonic (Richter) harp</p>
+    <p class="tagline">Which holes, bends &amp; overblows play your chord or scale on a 10-hole diatonic harp &mdash; Richter or an alternate tuning</p>
   </header>
 
   <section class="controls">
@@ -75,6 +75,16 @@
           <span class="cbx-caret" aria-hidden="true">▾</span>
         </button>
         <ul class="cbx-menu pop" id="key-menu" role="listbox" aria-labelledby="key-label" tabindex="-1"></ul>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label" id="tuning-label">Tuning</span>
+      <div class="cbx wide" id="tuning-cbx">
+        <button type="button" class="cbx-btn" id="tuning-btn" role="combobox" aria-controls="tuning-menu" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="tuning-label tuning-val">
+          <span class="cbx-val" id="tuning-val">Richter</span>
+          <span class="cbx-caret" aria-hidden="true">▾</span>
+        </button>
+        <ul class="cbx-menu pop" id="tuning-menu" role="listbox" aria-labelledby="tuning-label" tabindex="-1"></ul>
       </div>
     </div>
   </section>
@@ -134,7 +144,7 @@
     </label>
   </section>
 
-  <p class="play-hint">Diatonic 10-hole Richter tuning. Click any note to hear it. The strip below the harp runs the
+  <p class="play-hint">Click any note to hear it. The strip below the harp runs the
     selection low to high; ✕ marks a note the enabled techniques can&rsquo;t reach.</p>
 
   <section id="info" class="info"></section>

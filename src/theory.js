@@ -12,8 +12,10 @@ function normalizeAccidentals(s) {
   return s.replace(/♯/g, '#').replace(/♭/g, 'b').replace(/𝄪/g, '##');
 }
 
-// Parse a note name at the START of `str`. Returns {pc, len} or null.
-// `len` is how many characters were consumed (letter + accidentals).
+// Parse a note name at the START of `str`. Returns {pc, raw, len} or null.
+// `len` is how many characters were consumed (letter + accidentals); `raw` is
+// the pitch before it was folded into an octave, so C♭ stays just under C
+// rather than landing on the B above it.
 function parseNoteHead(str) {
   const s = normalizeAccidentals(str);
   const letter = s[0]?.toUpperCase();
@@ -24,7 +26,7 @@ function parseNoteHead(str) {
     pc += s[len] === '#' ? 1 : -1;
     len++;
   }
-  return { pc: ((pc % 12) + 12) % 12, len };
+  return { pc: ((pc % 12) + 12) % 12, raw: pc, len };
 }
 
 export function parseNote(str) {
@@ -32,6 +34,18 @@ export function parseNote(str) {
   const head = parseNoteHead(trimmed);
   if (!head || head.len !== normalizeAccidentals(trimmed).length) return null;
   return head.pc;
+}
+
+// A note name carrying its octave ("C4", "Eb5", "F#3") as a MIDI number, C4 = 60.
+// The reed layouts are written that way, so they read as notes rather than
+// numbers — and a mistyped one throws here rather than quietly tuning a reed to
+// the wrong octave.
+export function noteToMidi(name) {
+  const s = normalizeAccidentals(String(name).trim());
+  const head = parseNoteHead(s);
+  const octave = s.slice(head?.len);
+  if (!head || !/^-?\d+$/.test(octave)) throw new Error(`Not a note with an octave: "${name}"`);
+  return head.raw + (Number(octave) + 1) * 12;
 }
 
 // Transpose a note name by `n` perfect fifths (negative goes down), spelled the
@@ -122,6 +136,12 @@ const SCALE_TYPES = {
   'mixolydian': [0, 2, 4, 5, 7, 9, 10],
   'locrian': [0, 1, 3, 5, 6, 8, 10],
   'whole tone': [0, 2, 4, 6, 8, 10], 'wholetone': [0, 2, 4, 6, 8, 10],
+  // The symmetrical and bebop scales, which are what the symmetrically tuned
+  // harps play — and what names their positions.
+  'diminished': [0, 2, 3, 5, 6, 8, 9, 11], 'whole half': [0, 2, 3, 5, 6, 8, 9, 11],
+  'half whole': [0, 1, 3, 4, 6, 7, 9, 10], 'dominant diminished': [0, 1, 3, 4, 6, 7, 9, 10],
+  'augmented': [0, 3, 4, 7, 8, 11],
+  'bebop dominant': [0, 2, 4, 5, 7, 9, 10, 11], 'bebop': [0, 2, 4, 5, 7, 9, 10, 11],
   'chromatic': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
 };
 
@@ -229,7 +249,11 @@ const COMPLETION_CATALOGUE = [
   ['scale', ' Ionian', 'Ionian mode, the major scale'],
   ['scale', ' Aeolian', 'Aeolian mode, the natural minor'],
   ['scale', ' Harmonic Major', 'Harmonic major scale'],
+  ['scale', ' Bebop Dominant', 'Dominant 7 scale with a passing major 7'],
   ['scale', ' Whole Tone', 'Whole tone scale'],
+  ['scale', ' Diminished', 'Diminished (whole–half) scale'],
+  ['scale', ' Half Whole', 'Diminished (half–whole) scale'],
+  ['scale', ' Augmented', 'Augmented scale'],
   ['scale', ' Chromatic', 'Chromatic scale'],
 ];
 
@@ -315,9 +339,24 @@ const SCALE_LABELS = {
   pentatonic: 'Minor Pentatonic', 'm pentatonic': 'Minor Pentatonic', 'min pentatonic': 'Minor Pentatonic',
   blues: 'Blues', 'minor blues': 'Blues', 'm blues': 'Blues', 'major blues': 'Major Blues',
   'phrygian dominant': 'Phrygian Dominant', 'whole tone': 'Whole Tone', wholetone: 'Whole Tone',
+  diminished: 'Diminished', 'whole half': 'Diminished',
+  'half whole': 'Half-Whole Diminished', 'dominant diminished': 'Half-Whole Diminished',
+  bebop: 'Bebop Dominant',
 };
 export function scaleDisplayName(type) {
   return SCALE_LABELS[type] || type.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// SCALE_TYPES read backwards: the display name for a set of intervals from a
+// root, or null where they don't spell a scale we can name. Aliases collapse to
+// whichever spelling comes first in the table, that being the canonical one.
+const SCALE_BY_INTERVALS = new Map();
+for (const [type, intervals] of Object.entries(SCALE_TYPES)) {
+  const key = intervals.join(',');
+  if (!SCALE_BY_INTERVALS.has(key)) SCALE_BY_INTERVALS.set(key, scaleDisplayName(type));
+}
+export function scaleNameForIntervals(intervals) {
+  return SCALE_BY_INTERVALS.get([...intervals].sort((a, b) => a - b).join(',')) || null;
 }
 
 // Human-readable interval label for a pitch class relative to a root.

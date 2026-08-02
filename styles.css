@@ -294,14 +294,13 @@ body::after {
   box-shadow: var(--input-shadow), 0 0 0 3px var(--brass-soft);
 }
 
-/* --- Custom combobox (harp key) -------------------------------------------*/
+/* --- Custom combobox (harp key, tuning) -----------------------------------*/
 .cbx { position: relative; }
 .cbx-btn {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  /* Wide enough that the menu — pinned to the button's box — fits its widest row
-     ("F♯  2nd C♯ · 3rd G♯m", ticked) with room to spare, so no option ever wraps
-     or scrolls sideways, and the menu never spills past the page edge. */
-  min-width: 208px; height: 48px; padding: 0 12px 0 14px;
+  /* No wider than its own value needs: the menu sizes itself (see .cbx-menu),
+     so a one-note key doesn't sit in a field built for its dropdown. */
+  min-width: 88px; height: 48px; padding: 0 12px 0 14px;
   font: inherit; font-size: 1.05rem; font-weight: 600;
   color: var(--ink); background: var(--input-bg);
   border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
@@ -313,12 +312,17 @@ body::after {
 .cbx-caret { font-size: 1.1rem; color: var(--muted); transition: rotate 0.2s ease, color 0.15s ease; }
 .cbx-btn[aria-expanded="true"] .cbx-caret { rotate: 180deg; color: var(--brass); }
 .cbx-menu {
-  top: calc(100% + 6px); left: 0; right: 0; min-width: 100%;
+  /* Sized by its own rows rather than by the button, and grown to whichever side
+     openMenu() found the room on — a control row that wraps can leave the button
+     at either end of it. */
+  top: calc(100% + 6px); left: 0; right: auto;
+  width: max-content; min-width: 100%; max-width: min(400px, var(--menu-width, 400px));
   /* Room for all 12 keys, or as much of it as openMenu() found beside the button —
      a short window scrolls the list instead of running it off-screen. */
   max-height: min(460px, var(--menu-room, 460px)); overflow-y: auto;
   list-style: none; margin: 0;
 }
+.cbx-menu.to-left { left: auto; right: 0; }
 /* Set by openMenu() where the list has more room above the button than below,
    as on a phone held landscape. */
 .cbx-menu.above {
@@ -345,6 +349,32 @@ body::after {
   color: color-mix(in srgb, var(--brass-lit) 66%, transparent);
 }
 .cbx-opt:hover .cbx-opt-pos b, .cbx-opt.active .cbx-opt-pos b { color: var(--brass-lit); }
+
+/* A tuning needs a sentence, not an annotation, so its rows stack the name over
+   a description — and its button holds a name rather than a note. */
+.cbx.wide .cbx-btn { min-width: 208px; }
+/* Two-line rows, so the list needs more room than the keys' before it scrolls. */
+.cbx.wide .cbx-menu { max-height: min(640px, var(--menu-room, 640px)); }
+/* Section headings, for a list long enough to need scanning by kind. */
+.cbx-group { list-style: none; }
+.cbx-group ul { list-style: none; margin: 0; padding: 0; }
+.cbx-group + .cbx-group { margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--line); }
+.cbx-head {
+  display: block; padding: 5px 12px 4px;
+  font-size: 0.66rem; font-weight: 700;
+  color: var(--faint); text-transform: uppercase; letter-spacing: 0.1em;
+}
+.cbx-opt.stacked { grid-template-columns: 1fr auto; row-gap: 1px; align-items: start; }
+.cbx-opt.stacked .cbx-opt-name { grid-area: 1 / 1; }
+.cbx-opt.stacked::after { grid-area: 1 / 2; }
+.cbx-opt-sub {
+  grid-area: 2 / 1;
+  font-size: 0.76rem; font-weight: 500; line-height: 1.35;
+  color: var(--muted);
+}
+.cbx-opt:hover .cbx-opt-sub, .cbx-opt.active .cbx-opt-sub {
+  color: color-mix(in srgb, var(--brass-lit) 72%, transparent);
+}
 
 /* --- Query type-ahead -----------------------------------------------------*/
 .typeahead-menu {
@@ -483,9 +513,10 @@ body::after {
    fit wrapper's own height are all derived from them. */
 @property --row-1 { syntax: "<length>"; inherits: true; initial-value: 54px; }
 @property --row-2 { syntax: "<length>"; inherits: true; initial-value: 54px; }
-@property --row-6 { syntax: "<length>"; inherits: true; initial-value: 54px; }
+@property --row-3 { syntax: "<length>"; inherits: true; initial-value: 54px; }
 @property --row-7 { syntax: "<length>"; inherits: true; initial-value: 54px; }
 @property --row-8 { syntax: "<length>"; inherits: true; initial-value: 54px; }
+@property --row-9 { syntax: "<length>"; inherits: true; initial-value: 54px; }
 
 /* Wrapper that clips the harp; JS scales .harp-area down to fit narrow screens
    (a "zoom to fit" instead of a horizontal scrollbar). The vertical padding is
@@ -499,22 +530,24 @@ body::after {
   --num-row: calc(var(--num-h) + 2 * var(--row-gap));
   --row-1: var(--row-h);
   --row-2: var(--row-h);
-  --row-6: var(--row-h);
+  --row-3: var(--row-h);
   --row-7: var(--row-h);
   --row-8: var(--row-h);
-  /* --tab-h is measured by fitHarp(); the rest animates with the row collapse. */
-  --harp-h: calc(var(--row-1) + var(--row-2) + var(--reed-h) + var(--num-row)
-    + var(--reed-h) + var(--row-6) + var(--row-7) + var(--row-8) + var(--tab-h, 0px));
+  --row-9: var(--row-h);
+  /* --tab-h is measured by fitHarp(); the rest animates with the row collapse.
+     applyBendRows() zeroes any of these the current tuning never fills. */
+  --harp-h: calc(var(--row-1) + var(--row-2) + var(--row-3) + var(--reed-h) + var(--num-row)
+    + var(--reed-h) + var(--row-7) + var(--row-8) + var(--row-9) + var(--tab-h, 0px));
   transition:
-    --row-1 0.26s ease, --row-2 0.26s ease,
-    --row-6 0.26s ease, --row-7 0.26s ease, --row-8 0.26s ease;
+    --row-1 0.26s ease, --row-2 0.26s ease, --row-3 0.26s ease,
+    --row-7 0.26s ease, --row-8 0.26s ease, --row-9 0.26s ease;
 }
-/* Row 1 holds only the deepest blow bend, row 2 also the overblow; mirrored for
-   rows 6-8 below the comb. */
-.harp-fit.hide-blow-bend { --row-1: 0px; }
-.harp-fit.hide-blow-bend.hide-overblow { --row-2: 0px; }
-.harp-fit.hide-draw-bend { --row-7: 0px; --row-8: 0px; }
-.harp-fit.hide-draw-bend.hide-overdraw { --row-6: 0px; }
+/* Rows 1-2 hold only blow bends, row 3 also the overblow; mirrored for rows 7-9
+   below the comb. */
+.harp-fit.hide-blow-bend { --row-1: 0px; --row-2: 0px; }
+.harp-fit.hide-blow-bend.hide-overblow { --row-3: 0px; }
+.harp-fit.hide-draw-bend { --row-8: 0px; --row-9: 0px; }
+.harp-fit.hide-draw-bend.hide-overdraw { --row-7: 0px; }
 
 .harp-area {
   position: relative;
@@ -534,9 +567,9 @@ body::after {
 .side-label.right { left: auto; right: 0; }
 .side-label:not(.right) { left: 0; }
 .side-label { display: flex; align-items: center; justify-content: center; height: var(--reed-h); }
-.side-blow { top: calc(var(--row-1) + var(--row-2));
+.side-blow { top: calc(var(--row-1) + var(--row-2) + var(--row-3));
   writing-mode: vertical-rl; transform: rotate(180deg); }
-.side-draw { top: calc(var(--row-1) + var(--row-2) + var(--reed-h) + var(--num-row));
+.side-draw { top: calc(var(--row-1) + var(--row-2) + var(--row-3) + var(--reed-h) + var(--num-row));
   writing-mode: vertical-rl; }
 
 .harp {
@@ -544,13 +577,14 @@ body::after {
   grid-template-columns: repeat(10, minmax(52px, 1fr));
   grid-template-rows:
     var(--row-1)   /* 1 deepest blow bend */
-    var(--row-2)   /* 2 blow bend / overblow */
-    var(--reed-h)  /* 3 blow */
-    var(--num-row) /* 4 number bar */
-    var(--reed-h)  /* 5 draw */
-    var(--row-6)   /* 6 draw bend / overdraw */
-    var(--row-7)   /* 7 draw bend */
-    var(--row-8);  /* 8 draw bend */
+    var(--row-2)   /* 2 blow bend */
+    var(--row-3)   /* 3 blow bend / overblow */
+    var(--reed-h)  /* 4 blow */
+    var(--num-row) /* 5 number bar */
+    var(--reed-h)  /* 6 draw */
+    var(--row-7)   /* 7 draw bend / overdraw */
+    var(--row-8)   /* 8 draw bend */
+    var(--row-9);  /* 9 deepest draw bend */
   column-gap: 8px;
   min-width: 652px;
   position: relative;
@@ -560,7 +594,7 @@ body::after {
 /* Brushed cover plate behind the blow row, number bar and draw row. */
 .reed-panel {
   grid-column: 1 / -1;
-  grid-row: 3 / 6;
+  grid-row: 4 / 7;
   background: linear-gradient(180deg, var(--plate-hi), var(--plate-lo));
   border: 1px solid var(--plate-edge);
   border-radius: 16px;
@@ -573,7 +607,7 @@ body::after {
    juts out at both ends, the way the comb of a real harp does. */
 .number-bar {
   grid-column: 1 / -1;
-  grid-row: 4;
+  grid-row: 5;
   /* Fine lengthwise grain over the body colour; the uneven spacing keeps it from
      reading as a regular screen pattern. */
   background:
