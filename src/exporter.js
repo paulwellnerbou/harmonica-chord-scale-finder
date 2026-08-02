@@ -3,11 +3,12 @@
 // left transparent, i.e. without the page's blue backdrop.
 
 import { degreeOf, highlightFor, withMusicAccidentals } from './theory.js';
-import { buildHarp, tabStrip } from './harmonica.js';
+import { buildHarp, gridRowOf, HOLE_ROWS, tabStrip } from './harmonica.js';
 
 const COL_W = 92, GAP_X = 10, GAP_Y = 8, PAD = 26, TITLE_H = 44, SUB_H = 22, TITLE_GAP = 12;
 const GUTTER = 30; // side gutters holding the vertical BLOW / DRAW labels
-const ROW_H = [0, 50, 50, 70, 38, 70, 50, 50, 50]; // 1-indexed: rows 1..8
+const ROW_H = [0, 50, 50, 50, 70, 38, 70, 50, 50, 50]; // 1-indexed: rows 1..9
+const BLOW_ROW = 4, NUM_ROW = 5, DRAW_ROW = 6;
 const GRID_W = 10 * COL_W + 9 * GAP_X;
 // Tab strip below the harp, at the same fractions of the harp width as the cqw
 // values in styles.css — so a full 7-note scale fits one row here too.
@@ -39,17 +40,6 @@ const COLORS = {
 const inkAlpha = (a) => `rgba(${INK}, ${a})`;
 const TAG = { overblow: 'OB', overdraw: 'OD' };
 
-// Same row/style mapping as the DOM renderer (see app.js).
-function gridRow(type, depth) {
-  switch (type) {
-    case 'blow-bend': return depth === 1 ? 2 : 1;
-    case 'overblow': return 2;
-    case 'blow': return 3;
-    case 'draw': return 5;
-    case 'draw-bend': return 5 + depth;
-    case 'overdraw': return 6;
-  }
-}
 function baseStyle(type) {
   if (type === 'blow' || type === 'draw') return 'reed';
   if (type === 'overblow' || type === 'overdraw') return 'over';
@@ -90,17 +80,27 @@ function layoutTabStrip(parsed, harp, show, maxW) {
   return rows;
 }
 
-export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title, subtitle }) {
-  const harp = buildHarp(key);
+export function renderHarpImage({ key, tuning, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title, subtitle }) {
+  const harp = buildHarp(key, tuning);
   const show = { showDrawBends, showBlowBends, showOverblow, showOverdraw };
 
-  // Rows whose only occupants are switched off collapse away — same as on screen,
-  // so the export doesn't carry a band of empty space under the title.
-  const rowShown = [false, showBlowBends, showBlowBends || showOverblow, true, true, true,
-    showDrawBends || showOverdraw, showDrawBends, showDrawBends];
-  const rowTop = [0, 0];
+  // Every box the export draws, ascending by hole so the row heights can be
+  // taken from what is actually in them: a row left empty — by a technique
+  // switched off, or by a tuning that doesn't bend that deep — collapses away,
+  // same as on screen, instead of carrying a band of empty space under the title.
+  const boxes = [];
+  for (let h = 1; h <= 10; h++) {
+    const c = harp[h];
+    boxes.push(c.blow, c.draw);
+    if (showDrawBends) boxes.push(...c.drawBends);
+    if (showBlowBends) boxes.push(...c.blowBends);
+    if (showOverblow && c.overblow) boxes.push(c.overblow);
+    if (showOverdraw && c.overdraw) boxes.push(c.overdraw);
+  }
+  const rowShown = new Set([...boxes.map(gridRowOf), NUM_ROW]);
+  const rowTop = [0];
   let y = PAD + TITLE_H + (subtitle ? SUB_H : 0) + TITLE_GAP;
-  for (let r = 1; r <= 8; r++) { rowTop[r] = y; if (rowShown[r]) y += ROW_H[r] + GAP_Y; }
+  for (let r = 1; r <= HOLE_ROWS; r++) { rowTop[r] = y; if (rowShown.has(r)) y += ROW_H[r] + GAP_Y; }
   const gridBottom = y - GAP_Y; // last visible row's bottom, without its trailing gap
 
   const width = PAD * 2 + GUTTER * 2 + GRID_W;
@@ -127,8 +127,8 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   };
 
   // Brushed cover plate behind blow / number bar / draw.
-  const panelY = rowTop[3] - 4;
-  const panelH = rowTop[5] + ROW_H[5] + 4 - panelY;
+  const panelY = rowTop[BLOW_ROW] - 4;
+  const panelH = rowTop[DRAW_ROW] + ROW_H[DRAW_ROW] + 4 - panelY;
   ctx.fillStyle = vGradient(panelY, panelY + panelH, COLORS.plate);
   ctx.strokeStyle = COLORS.plateEdge;
   ctx.lineWidth = 1.5;
@@ -139,7 +139,7 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   // Wooden comb (number bar), jutting out past the plate at both ends as on the page.
   const barH = 34, barOver = 34; // 30px past the plate, which itself sits 4px past the grid
   const barX = gridLeft - barOver, barW = GRID_W + barOver * 2;
-  const barY = rowTop[4] + (ROW_H[4] - barH) / 2;
+  const barY = rowTop[NUM_ROW] + (ROW_H[NUM_ROW] - barH) / 2;
   ctx.fillStyle = vGradient(barY, barY + barH, COLORS.comb);
   roundRect(ctx, barX, barY, barW, barH, 8); // matches .number-bar border-radius
   ctx.fill();
@@ -156,7 +156,7 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
   ctx.restore();
 
   const drawBox = (n, x) => {
-    const row = gridRow(n.type, n.depth);
+    const row = gridRowOf(n);
     const top = rowTop[row];
     const h = ROW_H[row];
 
@@ -208,15 +208,7 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
     ctx.restore();
   };
 
-  for (let h = 1; h <= 10; h++) {
-    const c = harp[h];
-    const boxes = [c.blow, c.draw];
-    if (showDrawBends) boxes.push(...c.drawBends);
-    if (showBlowBends) boxes.push(...c.blowBends);
-    if (showOverblow && c.overblow) boxes.push(c.overblow);
-    if (showOverdraw && c.overdraw) boxes.push(c.overdraw);
-    boxes.forEach((n) => drawBox(n, colX(h)));
-  }
+  boxes.forEach((n) => drawBox(n, colX(n.hole)));
 
   // Hole-number chips on top of the bar.
   for (let h = 1; h <= 10; h++) {
@@ -234,8 +226,8 @@ export function renderHarpImage({ key, parsed, triad, showDrawBends, showBlowBen
 
   // Vertical BLOW / DRAW labels flanking both sides, centered on the blow / draw
   // reed rows (blow reads up, draw down).
-  const blowY = rowTop[3] + ROW_H[3] / 2;
-  const drawY = rowTop[5] + ROW_H[5] / 2;
+  const blowY = rowTop[BLOW_ROW] + ROW_H[BLOW_ROW] / 2;
+  const drawY = rowTop[DRAW_ROW] + ROW_H[DRAW_ROW] / 2;
   ctx.fillStyle = '#8a7c66';
   ctx.font = `800 13px ${FONT}`;
   ctx.textAlign = 'center';
