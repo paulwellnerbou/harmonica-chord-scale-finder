@@ -441,6 +441,34 @@ function renderSuggestions() {
     `<span>Common on ${article} ${withMusicAccidentals(escapeHtml(state.key))} harp${tuning}:</span>${pills.join('')}`;
 }
 
+// The sibling chord-and-scale tool draws the same selection on a fretboard, and
+// reads the same shorthand this field takes — so the promo hands the query over
+// rather than just pointing at the front page. Its parameter names the mode it
+// opens in; a note list goes over comma-separated, which is the form it wants.
+const CROSS_PROMO = 'https://chords.wbou.de/';
+const CROSS_PARAM = { chord: 'chords', scale: 'scale', notes: 'notes' };
+// Every instrument it draws is a four-string one, so the list can end there
+// rather than trailing off. Keep in step with the copy in index.html, which is
+// what stands before this runs.
+const CROSS_INSTRUMENTS = 'a ukulele, banjo, mandolin, bass or any other four-string instrument';
+const NO_SELECTION_TEASER = 'Play ukulele, banjo, mandolin or bass, too?';
+function renderCrossPromo() {
+  const link = document.getElementById('cross-promo');
+  const teaser = document.getElementById('cross-promo-teaser');
+  const q = state.query.trim();
+  const param = state.parsed && CROSS_PARAM[state.parsed.kind];
+  if (!q || !param) {
+    link.href = CROSS_PROMO;
+    teaser.textContent = NO_SELECTION_TEASER;
+    return;
+  }
+  const value = param === 'notes' ? q.split(/[\s,]+/).filter(Boolean).join(',') : q;
+  link.href = `${CROSS_PROMO}?${param}=${encodeURIComponent(value)}`;
+  // The query as typed, not the spelled-out name: it is shorter, and it is what
+  // the other tool puts in its own field when the link lands.
+  teaser.innerHTML = `See <b>${accidentalsHtml(q)}</b> on ${CROSS_INSTRUMENTS}?`;
+}
+
 function renderInfo() {
   const info = document.getElementById('info');
   const p = state.parsed;
@@ -526,6 +554,7 @@ function render() {
   renderInfo();
   renderPositions();
   renderSuggestions();
+  renderCrossPromo();
   const titleAscii = titleText();
   document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
   document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Chord & Scale Finder`;
