@@ -506,11 +506,12 @@ body::after {
   margin-left: -0.03em;
 }
 
-/* Heights of the four outer grid rows. They collapse to 0 when every technique
-   that lives in them is switched off, so a harp without bends/overblows doesn't
-   leave a band of dead space between the title and the reeds. Registered as
-   lengths so the collapse animates — the grid tracks, the side labels and the
-   fit wrapper's own height are all derived from them. */
+/* Heights of the six collapsible rows: three bend rows above the reeds, three
+   below. applyBendRows() zeroes whichever have nothing visible left in them, so
+   neither a shallow-bending tuning nor a switched-off technique leaves a band of
+   dead space between the title and the reeds. Registered as lengths so the
+   collapse animates — the grid tracks, the side labels and the fit wrapper's own
+   height are all derived from them. */
 @property --row-1 { syntax: "<length>"; inherits: true; initial-value: 54px; }
 @property --row-2 { syntax: "<length>"; inherits: true; initial-value: 54px; }
 @property --row-3 { syntax: "<length>"; inherits: true; initial-value: 54px; }

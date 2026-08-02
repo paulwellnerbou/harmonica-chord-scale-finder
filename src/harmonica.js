@@ -15,7 +15,13 @@
 
 import { PC_NAMES_FLAT, noteToMidi, transposeFifths, scaleNameForIntervals } from './theory.js';
 
-const reeds = (spec) => spec.split(/\s+/).map(noteToMidi);
+// Whitespace around a layout is nothing to fail over; a note the wrong side of a
+// typo, or one too few, is — a short row would tune the missing holes to NaN.
+function reeds(spec) {
+  const midis = spec.trim().split(/\s+/).map(noteToMidi);
+  if (midis.length !== 10) throw new Error(`A tuning needs 10 reeds, got ${midis.length}: "${spec}"`);
+  return midis;
+}
 
 // `desc` names the maker and what the tuning is for — enough to recognise the
 // harp you own. `group` heads the picker's sections. `suggestions` is what gets
@@ -509,6 +515,9 @@ export function gridRowOf({ type, depth }) {
     case 'draw': return 6;
     case 'draw-bend': return 6 + depth; // 7, 8, 9
     case 'overdraw': return 7;
+    // A seventh technique would otherwise land nowhere on the page and at NaN in
+    // the export, neither of which reads as the row it is missing.
+    default: throw new Error(`No grid row for a ${type}`);
   }
 }
 
