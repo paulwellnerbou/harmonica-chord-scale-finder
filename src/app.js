@@ -1,4 +1,4 @@
-import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, withMusicAccidentals, queryCompletions } from './theory.js';
+import { parseInput, degreeOf, PC_NAMES_FLAT, chordQualitySuffix, scaleDisplayName, tonicTriadPcs, highlightFor, blueNotePc, withMusicAccidentals, queryCompletions } from './theory.js';
 import { buildHarp, gridRowOf, KEY_ORDER, playableNotes, positionKeys, suggestions,
   tabStrip, pcOf, TUNINGS, TUNING_ORDER, DEFAULT_TUNING } from './harmonica.js';
 import { playNote, playSequence, stopSequence, primeAudio, NOTE_MS } from './audio.js';
@@ -153,6 +153,14 @@ function unring(el) {
   el.classList.remove('is-sounding');
 }
 
+// Tooltip naming the blue note, or null for every other note — also the test
+// the glow hangs off, so the harp, the tab strip and the chips agree on it.
+function blueNoteTitle(pc) {
+  if (pc !== blueNotePc(state.parsed)) return null;
+  const deg = withMusicAccidentals(degreeOf(pc, state.parsed.root));
+  return `the blue note (${deg}) — the note the blues scale adds to the pentatonic`;
+}
+
 function makeBox(note) {
   const el = document.createElement('button');
   el.type = 'button';
@@ -188,6 +196,12 @@ function makeBox(note) {
       deg.textContent = withMusicAccidentals(degreeOf(note.pc, p.root));
       el.appendChild(deg);
     }
+  }
+
+  const blue = blueNoteTitle(note.pc);
+  if (blue) {
+    el.classList.add('blue-note');
+    el.title += ` · ${blue}`;
   }
 
   el.addEventListener('click', () => soundNote(note.midi));
@@ -260,15 +274,20 @@ function renderTabStrip() {
 
     const el = document.createElement('button');
     el.type = 'button';
+    const blue = blueNoteTitle(k.pc);
     el.className = k.missing
       ? 'box mini miss'
       : `box mini ${classForType(k.notes[0].type)} ${highlightFor(k.pc, state.parsed, state.triad)}`;
+    // An unreachable key is an empty socket with nothing to light up — it says
+    // the note is the blue note, but only in the tooltip.
+    if (blue && !k.missing) el.classList.add('blue-note');
     el.dataset.pc = String(k.pc);
     el.dataset.midi = String(k.midi);
     el.textContent = k.text;
-    const what = k.missing
-      ? `${k.name} · not reachable with the current techniques`
-      : `${k.name} · ${k.notes.map((n) => `hole ${n.hole} ${labelForType(n)}`).join(' or ')}`;
+    const where = k.missing
+      ? 'not reachable with the current techniques'
+      : k.notes.map((n) => `hole ${n.hole} ${labelForType(n)}`).join(' or ');
+    const what = `${k.name} · ${where}${blue ? ` · ${blue}` : ''}`;
     el.title = what;
     el.setAttribute('aria-label', what); // the tab text alone reads poorly aloud
     // A missing key sounds its note too, like an unreachable chip does, so you
@@ -516,11 +535,13 @@ function renderInfo() {
       const reach = reachable.has(pc);
       const onlyOver = !plain.has(pc) && overOnly.has(pc);
       const bucket = highlightFor(pc, p, state.triad); // 'root' | 'match' | 'tone'
-      const cls = !reach ? 'chip miss' : `chip ${bucket}`;
+      const blue = blueNoteTitle(pc);
+      const cls = !reach ? 'chip miss' : `chip ${bucket}${blue ? ' blue-note' : ''}`;
       const flag = !reach ? ' ✕' : onlyOver ? ' °' : '';
       const name = withMusicAccidentals(PC_NAMES_FLAT[pc]);
       const midi = rootMidi + ((((pc - p.root) % 12) + 12) % 12);
-      return `<button type="button" class="${cls}" data-midi="${midi}" data-pc="${pc}" title="Play ${name}">${name}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</button>`;
+      const title = `Play ${name}${blue ? ` · ${blue}` : ''}`;
+      return `<button type="button" class="${cls}" data-midi="${midi}" data-pc="${pc}" title="${title}">${name}<em>${withMusicAccidentals(degreeOf(pc, p.root))}</em>${flag}</button>`;
     })
     .join('');
 

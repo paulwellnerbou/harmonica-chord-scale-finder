@@ -68,6 +68,7 @@
   --match: #1f9d55;  --match-fill: #c9f0d7;
   --tone:  #7fc79b;  --tone-fill:  #e2f5ea;
   --root:  #ec7a12;  --root-fill:  #ffe3c1;
+  --blue-note: #2f6ad0; /* lights the blue note from inside — see .blue-note */
 
   --radius: 12px;
   --box-h: 46px;
@@ -1032,6 +1033,27 @@ body::after {
 .chip.tone { background: var(--tone-fill); border-color: var(--tone); color: #326349; }
 .chip.root { background: var(--root-fill); border-color: var(--root); color: #834005; }
 .chip.miss { background: var(--fill-1); border-color: var(--line); color: var(--faint); }
+
+/* --- The blue note ---------------------------------------------------------*/
+/* The note a blues scale adds to its pentatonic (♭5, or ♭3 in major blues) is
+   lit from the middle of the key outwards, so it reads as that note glowing
+   rather than as a third highlight colour ringing it. A background image over
+   whatever fill the highlight state gave the key — which is why this has to
+   come after every rule setting `background` on .box / .chip. */
+.box.blue-note {
+  background-image: radial-gradient(ellipse 58% 66% at 50% 50%,
+    color-mix(in srgb, var(--blue-note) 42%, transparent),
+    color-mix(in srgb, var(--blue-note) 15%, transparent) 55%,
+    transparent 80%);
+}
+/* A chip is a pill far wider than it is tall, so its glow reaches past the top
+   and bottom edges rather than leaving the ends of the pill unlit. */
+.chip.blue-note {
+  background-image: radial-gradient(ellipse 62% 130% at 50% 50%,
+    color-mix(in srgb, var(--blue-note) 34%, transparent),
+    color-mix(in srgb, var(--blue-note) 12%, transparent) 55%,
+    transparent 80%);
+}
 
 .legendline { margin: 0; color: var(--muted); font-size: 0.82rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .sw { width: 13px; height: 13px; border-radius: 4px; display: inline-block; border: 1.5px solid; margin-left: 8px; }

@@ -389,6 +389,17 @@ export function tonicTriadPcs(pcs, root) {
   return [root, (root + third) % 12, (root + fifth) % 12];
 }
 
+// The one note a blues scale adds to the pentatonic underneath it — the ♭5 over
+// the minor pentatonic, the ♭3 over the major one. That added note is *the*
+// blue note, so only the blues scales have one.
+const BLUE_NOTE_INTERVAL = { 'blues': 6, 'minor blues': 6, 'm blues': 6, 'major blues': 3 };
+
+// Pitch class of the blue note of the active selection, or null if it has none.
+export function blueNotePc(parsed) {
+  if (!parsed || parsed.kind !== 'scale' || !(parsed.type in BLUE_NOTE_INTERVAL)) return null;
+  return (parsed.root + BLUE_NOTE_INTERVAL[parsed.type]) % 12;
+}
+
 // Highlight bucket for a pitch class against the active selection:
 // 'root' | 'match' (chord tone / scale triad 3rd·5th) | 'tone' (other scale
 // tone) | 'dim' (not in the selection) | null (nothing selected).
