@@ -37,6 +37,9 @@ descriptions each maker publishes first, then diffed against that data — zero
 differences across all 24 of them. The 25th, Chris Kramer's Signature, is not a
 Seydel tuning; it matches the chart Chris Kramer prints on the harp itself.
 
+Each table below carries its own **Source** line: the exact reed data the row was
+checked against, and the maker's page for the harp where there is one.
+
 Two further checks run against the same code: every tuning's bends fit the grid's
 three rows a side, and every suggestion pill parses and is playable on its own harp
 (none of them even needs an overblow).
@@ -53,6 +56,7 @@ its maker instead.
 
 Bends are marked ′ ″ ‴ by depth in semitones, over-notes with °. "Positions" is the
 line under the title; "pills" are the suggestion buttons above the harp.
+
 ## Richter & retunings
 
 ### Richter  <sub>`richter`</sub>
@@ -75,6 +79,8 @@ Positions: 2nd G (cross harp) · 3rd Dm
 
 Pills: C Major · G Blues · G Minor Pentatonic · D Minor · D Blues · C · C Major Pentatonic · G7 · G Mixolydian · D Dorian · A Minor
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/1)
+
 ### Paddy Richter  <sub>`paddy-richter`</sub>
 
 3 blow up to the 6th — fiddle tunes and Irish airs without bending · Brendan Power; Seydel and most custom shops
@@ -93,6 +99,8 @@ Pills: C Major · G Blues · G Minor Pentatonic · D Minor · D Blues · C · C 
 Positions: 2nd G (cross harp) · 3rd Dm
 
 Pills: C Major · D Dorian · A Minor · C6 · G7 · C Major Pentatonic · G Mixolydian
+
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/51) · [Seydel 1847 CLASSIC Paddy Richter](https://www.seydel1847.de/en/1847-CLASSIC-Paddy-Richter/16206C) · [Brendan Power](https://www.brendan-power.com/)
 
 ### Country  <sub>`country`</sub>
 
@@ -114,6 +122,8 @@ Positions: 2nd G (cross harp)
 
 Pills: G Major · Gmaj7 · G7 · C Major · C · G Blues · D Minor
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/55)
+
 ### Melody Maker  <sub>`melody-maker`</sub>
 
 Paddy’s 3 blow plus 5 and 9 draw up — the whole major scale in 2nd position, the key it is sold under · Lee Oskar, Seydel
@@ -133,6 +143,8 @@ Positions: 1st C Lydian · 2nd G (cross harp) · 3rd D
 
 Pills: G Major · G Major Pentatonic · G · C6 · A Dorian · D Mixolydian · C Lydian
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/45) · [Lee Oskar altered tunings](https://leeoskarharmonicas.com/about-lee-oskar-harmonicas-altered-tunings/)
+
 ### Easy Third  <sub>`easy-third`</sub>
 
 2 and 3 draw a tone lower — 3rd position without bending · Seydel
@@ -151,6 +163,8 @@ Positions: 2nd G (cross harp) · 3rd Dm
 
 Pills: D Minor Pentatonic · Dm · D Dorian · D Blues · C Major · C · G Mixolydian
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/56) · [Seydel 1847 CLASSIC Easy Third](https://www.seydel1847.de/en/1847-CLASSIC-Easy-Third/16240C)
+
 ### Chris Kramer Signature  <sub>`chris-kramer`</sub>
 
 Easy Third with 7 draw down a semitone as well — natural minor and its chords in 3rd position · Chris Kramer
@@ -168,6 +182,8 @@ Easy Third with 7 draw down a semitone as well — natural minor and its chords 
 Positions: 1st C Mixolydian · 2nd Gm (cross harp) · 3rd Dm
 
 Pills: D Minor · D Minor Pentatonic · Dm · D Blues · B♭maj7 · C · C Mixolydian
+
+Source: [Chris Kramer, Signature Harp](https://www.chriskramer-online.de/shop/Signature-Harp-Sonderstimmung-in-der-3-Position-p558691685) · [harpforum, "Mojo-Stimmung"](https://www.harpforum.de/phpbb/viewtopic.php?t=15330)
 
 > **Confirmed against Chris Kramer's own chart** (the "C3.P" harp): blow unchanged,
 > and the three reeds printed in red are 2 draw F, 3 draw A and 7 draw B♭ — Easy
@@ -196,6 +212,8 @@ Positions: 1st C Dorian · 2nd Gm (cross harp) · 3rd Dm
 
 Pills: G Minor · G Minor Pentatonic · G Blues · Gm · Cm · C Dorian · D Minor Pentatonic · D Phrygian
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/46) · [Lee Oskar Natural Minor key chart](https://leeoskarharmonicas.com/natural-minor-key-chart/)
+
 ### Harmonic Minor  <sub>`harmonic-minor`</sub>
 
 Minor with a major 7th, for klezmer and Eastern melodies · Suzuki, Seydel, Hohner
@@ -217,6 +235,8 @@ Positions: 1st C Harmonic Minor · 2nd G (cross harp)
 
 Pills: C Harmonic Minor · Cm · Cmmaj7 · G Phrygian Dominant · G7♭9
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/47)
+
 ### Dorian  <sub>`dorian`</sub>
 
 Richter with 3 and 7 draw a tone down — Dorian minor in 2nd position, major chord still on the blow · Seydel
@@ -235,6 +255,8 @@ Richter with 3 and 7 draw a tone down — Dorian minor in 2nd position, major ch
 Positions: 1st C Mixolydian · 2nd Gm (cross harp) · 3rd Dm
 
 Pills: G Dorian · G Minor Pentatonic · Gm · G Blues · C · C Mixolydian · D Minor
+
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/52)
 
 ## Rebuilt layouts
 
@@ -255,6 +277,8 @@ Positions: 2nd G (cross harp) · 3rd Dm
 
 Pills: G Blues · G Minor Pentatonic · G7 · G Mixolydian · C Major · C · D Dorian
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/99) · [Seydel 1847 CLASSIC Wilde Rock](https://www.seydel1847.de/en/1847-CLASSIC-Wilde-Rock-Tuning/16220C)
+
 ### Wilde Minor  <sub>`wilde-minor`</sub>
 
 Wilde with minor 3rds — minor blues in 2nd position, the key it is sold under · Seydel
@@ -271,6 +295,8 @@ Wilde with minor 3rds — minor blues in 2nd position, the key it is sold under 
 Positions: 1st C Dorian · 2nd Gm (cross harp) · 3rd Dm
 
 Pills: G Minor · G Minor Pentatonic · G Blues · Gm7 · Cm · C Dorian
+
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/103) · [Seydel 1847 CLASSIC, Wilde Minor variant](https://www.seydel1847.de/en/1847-CLASSIC-Wilde-Rock-Tuning/16220C)
 
 ### PowerBender  <sub>`powerbender`</sub>
 
@@ -289,6 +315,8 @@ Positions: 2nd G (cross harp) · 3rd Dm
 
 Pills: G Blues · G Minor Pentatonic · G7 · C · G Mixolydian · C Major · D Dorian
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/75) · [Brendan Power](https://www.brendan-power.com/)
+
 ### PowerDraw  <sub>`powerdraw`</sub>
 
 Richter to hole 6, PowerBender above it — the low end you already know, draw bends up top · Brendan Power, Seydel
@@ -306,6 +334,8 @@ Positions: 2nd G (cross harp) · 3rd Dm
 
 Pills: G Blues · G Minor Pentatonic · G7 · C · G Mixolydian · C Major · D Dorian
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/94) · [Brendan Power](https://www.brendan-power.com/)
+
 ### Pentatonic/PentaHarp  <sub>`pentaharp`</sub>
 
 The blues scale straight up the harp, three times over, no bends · Hohner PentaHarp, Seydel Pentatonic
@@ -321,6 +351,8 @@ The blues scale straight up the harp, three times over, no bends · Hohner Penta
 Positions: 1st C Blues
 
 Pills: C Blues · C Minor Pentatonic · Cm7 · Csus4 · E♭ Major Pentatonic · E♭m · E♭
+
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/105) · [Hohner PentaHarp](https://hohner.de/en/instruments/harmonicas/diatonic/progressive/pentaharp)
 
 ### Major Cross  <sub>`major-cross`</sub>
 
@@ -339,6 +371,8 @@ Positions: 1st C Mixolydian · 2nd Gm (cross harp) · 3rd Dm
 
 Pills: F Major · C Mixolydian · D Minor · C · Dm · G Dorian · C Major Pentatonic
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/96) · [Seydel SESSION Steel Major Cross](https://www.seydel1847.de/en/SESSION-Steel-Major-Cross/10315C)
+
 ### Solo  <sub>`solo`</sub>
 
 The chromatic harmonica’s layout — C D E F G A B over and over, four holes to the octave · Seydel
@@ -355,6 +389,8 @@ Positions: 2nd G (cross harp) · 3rd Dm
 
 Pills: C Major · C · Dm6 · A Minor · D Dorian · G Mixolydian · C Major Pentatonic
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/5)
+
 ### Circular (1st position)  <sub>`circular-1st`</sub>
 
 The major scale straight up, blow and draw alternating — no note twice, no gaps · Seydel
@@ -369,6 +405,8 @@ The major scale straight up, blow and draw alternating — no note twice, no gap
 Positions: 2nd G (cross harp) · 3rd Dm
 
 Pills: C Major · Cmaj7 · Dm7 · A Minor · D Dorian · G Mixolydian · C Major Pentatonic
+
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/58)
 
 ### Circular  <sub>`circular`</sub>
 
@@ -385,6 +423,8 @@ Positions: 1st C Mixolydian · 2nd Gm (cross harp) · 3rd Dm
 
 Pills: F Major · C Mixolydian · C7 · Dm7 · D Minor · G Dorian
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/7)
+
 ### Bebop  <sub>`bebop`</sub>
 
 Dominant 7 on the blow, the passing 7th on the draw — the bebop scale two notes at a time · Seydel
@@ -399,6 +439,8 @@ Dominant 7 on the blow, the passing 7th on the draw — the bebop scale two note
 Positions: 1st C Bebop Dominant
 
 Pills: C Bebop Dominant · C7 · Dm6 · C Mixolydian · C Major · A Minor
+
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/59)
 
 ### EDHarmonica  <sub>`edharmonica`</sub>
 
@@ -416,6 +458,8 @@ Positions: — none its notes can name —
 
 Pills: C Minor Pentatonic · Cm · B♭ · C Minor · C Dorian · B♭ Major Pentatonic
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/100)
+
 ### Orchestra S  <sub>`orchestra-s`</sub>
 
 An F major chord on the blow against a G minor 6 on the draw, four holes to the octave; Seydel label these a fifth down · Seydel
@@ -431,6 +475,8 @@ An F major chord on the blow against a G minor 6 on the draw, four holes to the 
 Positions: 1st C Mixolydian · 2nd Gm (cross harp) · 3rd Dm
 
 Pills: F Major · F · Gm6 · D Minor · C Mixolydian · F Major Pentatonic
+
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/95)
 
 ## Symmetrical
 
@@ -449,6 +495,8 @@ Positions: 1st C Diminished · 3rd D
 
 Pills: C Diminished · Cdim7 · Ddim7
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/6)
+
 ### Augmented  <sub>`augmented`</sub>
 
 Augmented triads a minor 3rd apart, blow and draw — whole-tone bends everywhere · Seydel
@@ -465,6 +513,8 @@ Positions: 1st C Augmented
 
 Pills: C Augmented · Caug · E♭aug · Cmaj7 · Em
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/53)
+
 ### Whole Tone  <sub>`whole-tone`</sub>
 
 Two augmented triads a tone apart — every note a whole tone from the next · Seydel
@@ -480,6 +530,8 @@ Positions: 1st C Whole Tone · 3rd D
 
 Pills: C Whole Tone · Caug · Daug · C7♯5
 
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/54)
+
 ### Four Key  <sub>`four-key`</sub>
 
 Two major pentatonics a semitone apart, blow and draw — four keys off one harp · Seydel
@@ -494,6 +546,8 @@ Two major pentatonics a semitone apart, blow and draw — four keys off one harp
 Positions: — none its notes can name —
 
 Pills: F Major Pentatonic · E Major Pentatonic · F6 · E
+
+Source: [Seydel reed data](https://www.seydel1847.de/en/harp-configurator/stimmung-offsets/61)
 
 # Judgment calls — the bits worth your ear
 
@@ -539,8 +593,25 @@ Pills: F Major Pentatonic · E Major Pentatonic · F6 · E
 
 # What is not here
 
-The 24 are every 10-hole tuning Seydel's configurator offers. Hohner's and Suzuki's
-catalogues overlap it almost entirely (the PentaHarp is Seydel's Pentatonic; the
-minors and Country are common property), so what's missing is mostly one-off custom
-layouts — Brendan Power's other tunings, half-valved setups, and anything you tune
-yourself. Each is one `blow`/`draw` line pair plus a description and a few pills.
+Twenty-four of these are every 10-hole tuning Seydel's configurator offers. Hohner's
+and Suzuki's catalogues overlap it almost entirely (the PentaHarp is Seydel's
+Pentatonic; the minors and Country are common property), so what's missing is mostly
+one-off custom layouts — Brendan Power's other tunings, half-valved setups, and
+anything you tune yourself. Each is one `blow`/`draw` line pair plus a description
+and a few pills.
+
+# Further reading
+
+Beyond the per-tuning sources above:
+
+- [Seydel special models](https://www.seydel1847.de/en/Shop/Special-Models/) — the
+  shop pages, each with a tone table for the harp as sold.
+- [Sonderstimmung (Mundharmonika)](https://de.wikipedia.org/wiki/Sonderstimmung_%28Mundharmonika%29)
+  — German Wikipedia's survey, with note tables for most of the mainstream tunings.
+- [Popular altered tunings](https://harp.andrewzajac.ca/PopularAlteredTunings) —
+  Andrew Zajac's diagrams, which give each tuning as offsets from Richter.
+- [Lee Oskar altered tunings](https://leeoskarharmonicas.com/about-lee-oskar-harmonicas-altered-tunings/)
+  — including the 2nd-position labelling their minors and Melody Makers use.
+- [Hohner PentaHarp](https://hohner.de/en/instruments/harmonicas/diatonic/progressive/pentaharp)
+  and [a walk through it](https://www.learntheharmonica.com/post/hohner-pentaharp-intro-demo-tabs),
+  whose published tabs the layout here was checked against.

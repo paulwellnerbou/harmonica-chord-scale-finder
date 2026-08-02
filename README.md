@@ -27,7 +27,7 @@ Each tuning is written out once as its twenty reeds, in the key of C and anchore
 
 That falls out as standard Richter behaviour (draw bends on holes 1–6, blow bends on 7–10) and as each alternate tuning's own: the PentaHarp and both Wilde tunings have no blow bends at all, Easy Third bends no deeper than a semitone, and harmonic minor's 10 blow bends a minor third. Everything you blow is drawn above the number bar and everything you draw below it, with deeper bends further from the bar; a row no reed of the current tuning reaches collapses away.
 
-The positions under the title and each key's annotation in the menu are read off the harp's own notes, so they name what that tuning actually plays from each tonic. The harp key always names the pitch of hole 1 blow; some makers label their minor harps by the 2nd-position key instead — a Seydel or Lee Oskar "Gm" natural minor is this app's C harp — which the tuning's own note in the picker says. `TUNINGS.md` has every layout, where the reeds came from and how they were checked.
+The positions under the title and each key's annotation in the menu are read off the harp's own notes, so they name what that tuning actually plays from each tonic. The harp key always names the pitch of hole 1 blow; some makers label their minor harps by the 2nd-position key instead — a Seydel or Lee Oskar "Gm" natural minor is this app's C harp — which the tuning's own note in the picker says. [`doc/TUNINGS.md`](doc/TUNINGS.md) has every layout, a source link for each, and how they were checked.
 
 ## Run locally
 
