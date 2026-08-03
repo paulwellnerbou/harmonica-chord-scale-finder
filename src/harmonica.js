@@ -526,18 +526,26 @@ export function gridRowOf({ type, depth }) {
 export function buildHarp(key, tuning) {
   const offset = KEY_OFFSETS[key] ?? 0;
   const { blow, draw } = tuningOf(tuning);
-  const plain = new Set([...blow, ...draw]);
-  const map = {};
+  // Reeds and bends first, all ten holes of them, because whether a hole has an
+  // over-note of its own is a question about the rest of the harp.
+  const sounded = new Set([...blow, ...draw]);
+  const holes = [];
   for (let h = 1; h <= 10; h++) {
     const b = blow[h - 1];
     const d = draw[h - 1];
     const drawHigher = d > b; // so this hole bends on the draw, and overblows
     const [lo, hi] = drawHigher ? [b, d] : [d, b];
     const bends = [];
-    for (let m = hi - 1; m > lo; m--) bends.push(m);
-    // An over-note a plain reed already sounds is no note of its own — as with
-    // Richter's 3 overblow (hole 4's blow) and 8 overdraw (hole 9's draw).
-    const over = plain.has(hi + 1) ? null : hi + 1;
+    for (let m = hi - 1; m > lo; m--) { bends.push(m); sounded.add(m); }
+    holes.push({ h, b, d, drawHigher, hi, bends });
+  }
+
+  const map = {};
+  for (const { h, b, d, drawHigher, hi, bends } of holes) {
+    // An over-note the harp sounds some easier way is no note of its own — as
+    // with Richter's 3 overblow (hole 4's blow), its 8 overdraw (hole 9's draw)
+    // and its 2 overblow (hole 3 drawn down a step and a half).
+    const over = sounded.has(hi + 1) ? null : hi + 1;
     const bent = (type) => bends.map((m, i) => note(h, type, m, offset, i + 1));
     map[h] = {
       blow: note(h, 'blow', b, offset),
