@@ -558,10 +558,12 @@ function renderInfo() {
 }
 
 // Notes on the current harp that match the query and are visible under the
-// current toggles, ascending — what the Play button sounds.
+// current toggles, ascending — what the Play button sounds. With nothing
+// selected there is nothing to filter to, so the whole harp sounds and Play
+// still says something about the tuning in front of you.
 function matchedNotes() {
-  if (!state.parsed) return [];
-  return playableNotes(buildHarp(state.key, state.tuning), state).filter((n) => state.parsed.pcs.includes(n.pc));
+  const notes = playableNotes(buildHarp(state.key, state.tuning), state);
+  return state.parsed ? notes.filter((n) => state.parsed.pcs.includes(n.pc)) : notes;
 }
 
 // Unique pitches of the above; already ascending, so the Set keeps that order.
@@ -579,7 +581,7 @@ function render() {
   const titleAscii = titleText();
   document.getElementById('harp-title').innerHTML = accidentalsHtml(titleAscii);
   document.title = `${withMusicAccidentals(titleAscii)} — Harmonica Chord & Scale Finder`;
-  document.getElementById('play').disabled = matchedMidis().length === 0;
+  syncPlayButton();
   fitHarp(); // the tab strip's height feeds the scaled wrapper
   syncURL();
 }
@@ -626,7 +628,7 @@ function initControls() {
     applyVisibility();
     renderTabStrip();
     renderInfo();
-    document.getElementById('play').disabled = matchedMidis().length === 0;
+    syncPlayButton();
     fitHarp();
     syncURL();
   };
@@ -678,9 +680,23 @@ function initAudioPriming() {
 // Play the highlighted notes and show pulsing bars on the button until they've
 // finished sounding; while they do, the button stops playback instead.
 const PLAY_LABEL = 'Play the highlighted notes';
+const PLAY_ALL_LABEL = 'Play every note on this harp, low to high';
 const STOP_LABEL = 'Stop playback';
 let playTimer = null;
 let playing = false;
+
+function playLabel() {
+  return state.parsed ? PLAY_LABEL : PLAY_ALL_LABEL;
+}
+
+// Keep the button saying what it will do. Skipped mid-playback, where it is
+// offering to stop and a re-render must not talk over that.
+function syncPlayButton() {
+  const btn = document.getElementById('play');
+  btn.disabled = matchedMidis().length === 0;
+  if (!playing) setPlayLabel(btn, playLabel());
+}
+
 function playMatched() {
   const btn = document.getElementById('play');
   if (playing) { endPlayback(btn); return; }
@@ -721,7 +737,7 @@ function endPlayback(btn) {
   playing = false;
   btn.classList.remove('is-playing');
   btn.innerHTML = PLAY_ICON;
-  setPlayLabel(btn, PLAY_LABEL);
+  setPlayLabel(btn, playLabel());
 }
 
 function setPlayLabel(btn, label) {
