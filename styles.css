@@ -235,10 +235,11 @@ body::after {
 }
 .tagline {
   margin: 9px auto 0;
-  max-width: 46ch;
+  max-width: 54ch;
   color: var(--muted);
   font-size: 1rem;
   line-height: 1.5;
+  text-wrap: balance; /* keeps the last line from shrinking to a single word */
 }
 .topbar::after {
   content: "";
