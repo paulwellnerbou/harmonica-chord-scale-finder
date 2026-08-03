@@ -689,12 +689,15 @@ function playLabel() {
   return state.parsed ? PLAY_LABEL : PLAY_ALL_LABEL;
 }
 
-// Keep the button saying what it will do. Skipped mid-playback, where it is
-// offering to stop and a re-render must not talk over that.
+// Keep the button saying what it will do. Left alone mid-playback: it is
+// offering to stop, and it is the only way to — emptying the selection while a
+// sequence runs would otherwise disable the button over its own sound. What the
+// selection became by then is picked up when playback ends.
 function syncPlayButton() {
+  if (playing) return;
   const btn = document.getElementById('play');
   btn.disabled = matchedMidis().length === 0;
-  if (!playing) setPlayLabel(btn, playLabel());
+  setPlayLabel(btn, playLabel());
 }
 
 function playMatched() {
@@ -737,7 +740,7 @@ function endPlayback(btn) {
   playing = false;
   btn.classList.remove('is-playing');
   btn.innerHTML = PLAY_ICON;
-  setPlayLabel(btn, playLabel());
+  syncPlayButton();
 }
 
 function setPlayLabel(btn, label) {
