@@ -5,8 +5,23 @@
 let ctx = null;
 
 function ac() {
-  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // iOS runs Web Audio in the "ambient" session, which the ring/silent switch
+    // mutes — so an iPhone in silent mode stays quiet where Android sounds fine.
+    // Reclassifying as "playback" (what music apps use) exempts it from the switch.
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = 'playback';
+    } catch (e) { /* an unsettable session must not cost us playback */ }
+  }
   return ctx;
+}
+
+// Covers iOS's 'interrupted' state (after a call or Siri) as well as
+// 'suspended' — resuming only from the latter leaves the app mute for good
+// once something has interrupted it.
+function wake(c) {
+  if (c.state !== 'running') c.resume().catch(() => {});
 }
 
 function midiToFreq(midi) {
@@ -25,8 +40,7 @@ const LEAD_IN = 0.06;
 // context needs a moment to get its clock running, and that delay would land
 // entirely on the first note.
 export function primeAudio() {
-  const c = ac();
-  if (c.state === 'suspended') c.resume();
+  wake(ac());
 }
 
 // A breath, not a pluck: swell in, settle back from the initial push, then hold
@@ -65,7 +79,7 @@ export const NOTE_MS = Math.round((LEAD_IN + NOTE_DUR) * 1000);
 
 export function playNote(midi, duration = NOTE_DUR, at = 0) {
   const c = ac();
-  if (c.state === 'suspended') c.resume();
+  wake(c);
   // A caller-supplied onset already carries the lead-in, and comes from a
   // single clock reading for the whole sequence — only guard it against
   // landing in the past, or the notes would drift apart by a render quantum.
@@ -140,7 +154,7 @@ export function playSequence(midis, gap = SEQ_GAP) {
   stopSequence();
   if (!midis.length) return { total: 0, notes: [] };
   const c = ac();
-  if (c.state === 'suspended') c.resume();
+  wake(c);
   const now = c.currentTime;
   scheduled = midis.map((m, i) => playNote(m, SEQ_NOTE_DUR, now + LEAD_IN + i * gap));
   const last = scheduled[scheduled.length - 1];
