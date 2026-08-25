@@ -550,8 +550,15 @@ function renderInfo() {
        <span class="sw tone"></span>other scale tone`
     : `<span class="sw root"></span>root <span class="sw match"></span>chord tone`;
 
+  // Re-emitted in whatever state the sequence is actually in: this button is
+  // rebuilt under a run that is still sounding, and must not reset itself to
+  // idle while it is the only way to stop.
+  const sounding = playingId === SCALE_PLAY_ID;
+  const scaleLabel = sounding ? STOP_LABEL : SCALE_PLAY_LABEL;
+  const scalePlay = `<button type="button" id="${SCALE_PLAY_ID}" class="card-btn scale-play${sounding ? ' is-playing' : ''}" title="${scaleLabel}" aria-label="${scaleLabel}">${sounding ? PLAYING_ICON : PLAY_ICON}</button>`;
+
   info.innerHTML = `
-    <div class="detected"><strong>${accidentalsHtml(title)}</strong>${sub ? `<span>${sub}</span>` : ''}</div>
+    <div class="detected">${scalePlay}<strong>${accidentalsHtml(title)}</strong>${sub ? `<span>${sub}</span>` : ''}</div>
     <div class="chips">${chips}</div>
     <p class="legendline">${toneKey}
       <span class="sw miss"></span>unreachable (✕) · ° = needs overblow / overdraw</p>`;
@@ -655,6 +662,7 @@ function initControls() {
 
   // Delegated: the note chips are rebuilt on every render.
   document.getElementById('info').addEventListener('click', (e) => {
+    if (e.target.closest(`#${SCALE_PLAY_ID}`)) { playScale(); return; }
     const chip = e.target.closest('.chip');
     if (chip) soundPitchClass(Number(chip.dataset.midi));
   });
@@ -679,9 +687,14 @@ function initAudioPriming() {
 // finished sounding; while they do, the button stops playback instead.
 const PLAY_LABEL = 'Play the highlighted notes';
 const PLAY_ALL_LABEL = 'Play every note on this harp, low to high';
+const SCALE_PLAY_ID = 'play-scale';
+const SCALE_PLAY_LABEL = 'Play these notes once, from the root up';
 const STOP_LABEL = 'Stop playback';
 let playTimer = null;
-let playing = false;
+// Which button owns the running sequence, held by id rather than by node: the
+// panel's is rebuilt on every render and a reference would not survive one.
+// One sequencer serves both, so starting either has to end the other.
+let playingId = null;
 
 function playLabel() {
   return state.parsed ? PLAY_LABEL : PLAY_ALL_LABEL;
@@ -692,25 +705,40 @@ function playLabel() {
 // sequence runs would otherwise disable the button over its own sound. What the
 // selection became by then is picked up when playback ends.
 function syncPlayButton() {
-  if (playing) return;
+  if (playingId === 'play') return;
   const btn = document.getElementById('play');
   btn.disabled = matchedMidis().length === 0;
   setPlayLabel(btn, playLabel());
 }
 
+// The harp's own Play: every reed that matches, so a pitch class comes round
+// once per octave and each note lights the single hole it was played from.
 function playMatched() {
-  const btn = document.getElementById('play');
-  if (playing) { endPlayback(btn); return; }
-  const midis = matchedMidis();
-  if (!midis.length) return;
+  startSequence('play', matchedMidis(), cardsOf);
+}
+
+// The panel's Play: the chip row as it stands — the selection once through, in
+// the harp's register, unreachable notes included. A chip is a pitch class, so
+// each note lights every hole that gives it, exactly as clicking it would.
+function playScale() {
+  const chips = document.querySelectorAll('#info .chip');
+  const selector = (midi) => `[data-pc="${pcOf(midi)}"]`;
+  startSequence(SCALE_PLAY_ID, [...chips].map((c) => Number(c.dataset.midi)), selector);
+}
+
+function startSequence(id, midis, selectorFor) {
+  const was = playingId;
+  if (was) endPlayback();
+  // A click on the button already sounding is a stop, and stops there.
+  if (was === id || !midis.length) return;
+  const btn = document.getElementById(id);
   const seq = playSequence(midis);
-  clearTimeout(playTimer);
-  ringSequence(seq.notes);
-  playing = true;
+  ringSequence(seq.notes, selectorFor);
+  playingId = id;
   btn.classList.add('is-playing');
   btn.innerHTML = PLAYING_ICON;
   setPlayLabel(btn, STOP_LABEL);
-  playTimer = setTimeout(() => endPlayback(btn), seq.total);
+  playTimer = setTimeout(endPlayback, seq.total);
 }
 
 // The sequence rings the same cards a click would, each as its own note comes
@@ -718,9 +746,9 @@ function playMatched() {
 // stopping halfway leaves nothing glowing over the silence.
 let ringTimers = [];
 let ringingCards = [];
-function ringSequence(notes) {
+function ringSequence(notes, selectorFor) {
   ringTimers = notes.map(({ midi, at, ms }) => setTimeout(() => {
-    ringingCards.push(...ring(cardsOf(midi), ms, BY_SEQUENCE));
+    ringingCards.push(...ring(selectorFor(midi), ms, BY_SEQUENCE));
   }, at));
 }
 
@@ -731,13 +759,20 @@ function endRings() {
   ringingCards = [];
 }
 
-function endPlayback(btn) {
+function endPlayback() {
+  const btn = playingId && document.getElementById(playingId);
+  const wasScale = playingId === SCALE_PLAY_ID;
   clearTimeout(playTimer);
   endRings();
   stopSequence();
-  playing = false;
-  btn.classList.remove('is-playing');
-  btn.innerHTML = PLAY_ICON;
+  playingId = null;
+  if (btn) {
+    btn.classList.remove('is-playing');
+    btn.innerHTML = PLAY_ICON;
+    // syncPlayButton speaks for the harp's button only, and the panel's says
+    // "stop" until told otherwise.
+    if (wasScale) setPlayLabel(btn, SCALE_PLAY_LABEL);
+  }
   syncPlayButton();
 }
 

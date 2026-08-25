@@ -990,6 +990,11 @@ body::after {
   font-size: 0.9em;
 }
 .detected { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+/* Plays the chip row. Sits with the name it belongs to rather than on the row
+   itself, where it would read as one more note among the chips. */
+.scale-play { width: 32px; height: 32px; align-self: center; flex: none; }
+.scale-play svg { width: 15px; height: 15px; }
+.scale-play.is-playing { background: var(--btn-bg); color: var(--btn-fg); border-color: transparent; }
 .detected strong {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 600;
