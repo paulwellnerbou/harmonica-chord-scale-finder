@@ -665,16 +665,14 @@ function initControls() {
   initImageButton();
 }
 
-// Browsers only let audio start from a user gesture, so wake the context on the
-// first one anywhere on the page — by the time Play is clicked it is running.
+// Browsers only let audio start from a user gesture, so wake the context on any
+// gesture anywhere on the page — by the time Play is clicked it is running.
+// Left armed rather than fired once: iOS parks the context whenever a call or
+// Siri interrupts it, and waking is async, so it is the pointerdown ahead of
+// each click that buys the clock time to be running when the note is scheduled.
 function initAudioPriming() {
-  const prime = () => {
-    primeAudio();
-    window.removeEventListener('pointerdown', prime);
-    window.removeEventListener('keydown', prime);
-  };
-  window.addEventListener('pointerdown', prime);
-  window.addEventListener('keydown', prime);
+  window.addEventListener('pointerdown', primeAudio);
+  window.addEventListener('keydown', primeAudio);
 }
 
 // Play the highlighted notes and show pulsing bars on the button until they've
