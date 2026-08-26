@@ -781,26 +781,79 @@ function setPlayLabel(btn, label) {
   btn.setAttribute('aria-label', label);
 }
 
-// Light / dark theme. The theme is set pre-paint by an inline script; here we
-// just wire up the toggle and persist the choice.
+// Theme: warm daylight, cooler overcast, or night. Which one is showing also
+// picks the cover plate, so the exported image follows — see exporter.js, which
+// reads the instrument colours back off the page rather than keeping its own.
+// The theme is set pre-paint by an inline script; here we wire the menu up.
+const THEMES = ['warm', 'cool', 'dark'];
+const THEME_BAR = { warm: '#f3e8d4', cool: '#eaeef2', dark: '#1d2531' };
+
 function initTheme() {
   const root = document.documentElement;
   const btn = document.getElementById('theme-toggle');
+  const menu = document.getElementById('theme-menu');
   const meta = document.querySelector('meta[name="theme-color"]');
+  const opts = () => [...menu.querySelectorAll('.theme-opt')];
+  let open = false;
+  let activeIndex = 0;
 
   const apply = (theme) => {
     root.dataset.theme = theme;
-    if (meta) meta.content = theme === 'light' ? '#f6efe1' : '#15110c';
-    btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
-    btn.setAttribute('aria-pressed', String(theme === 'dark'));
+    if (meta) meta.content = THEME_BAR[theme];
+    const label = `Theme: ${theme[0].toUpperCase()}${theme.slice(1)}`;
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
+    opts().forEach((li) => li.setAttribute('aria-selected', String(li.dataset.theme === theme)));
   };
 
-  apply(root.dataset.theme === 'light' ? 'light' : 'dark');
-  btn.addEventListener('click', () => {
-    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
-    apply(next);
-    try { localStorage.setItem('harp-theme', next); } catch (e) { /* private mode */ }
+  const setActive = (i) => {
+    const list = opts();
+    activeIndex = (i + list.length) % list.length;
+    list.forEach((li, n) => li.classList.toggle('active', n === activeIndex));
+  };
+
+  const openMenu = () => {
+    open = true;
+    menu.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    setActive(Math.max(0, opts().findIndex((li) => li.dataset.theme === root.dataset.theme)));
+  };
+  const closeMenu = (focus) => {
+    open = false;
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    if (focus) btn.focus();
+  };
+  const choose = (theme) => {
+    apply(theme);
+    try { localStorage.setItem('harp-theme', theme); } catch (e) { /* private mode */ }
+    closeMenu(true);
+  };
+
+  apply(THEMES.includes(root.dataset.theme) ? root.dataset.theme : 'dark');
+
+  // The click reaches document on purpose: that is what shuts any other popup
+  // that was open — each one ignores clicks landing inside its own control.
+  btn.addEventListener('click', () => { open ? closeMenu() : openMenu(); });
+  menu.addEventListener('click', (e) => {
+    const li = e.target.closest('.theme-opt');
+    if (li) choose(li.dataset.theme);
   });
+  btn.addEventListener('keydown', (e) => {
+    if (!open) {
+      if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); openMenu(); }
+      return;
+    }
+    switch (e.key) {
+      case 'ArrowDown': e.preventDefault(); setActive(activeIndex + 1); break;
+      case 'ArrowUp': e.preventDefault(); setActive(activeIndex - 1); break;
+      case 'Home': e.preventDefault(); setActive(0); break;
+      case 'End': e.preventDefault(); setActive(opts().length - 1); break;
+      case 'Enter': case ' ': e.preventDefault(); choose(opts()[activeIndex].dataset.theme); break;
+      case 'Escape': case 'Tab': closeMenu(e.key === 'Escape'); break;
+    }
+  });
+  document.addEventListener('click', (e) => { if (open && !e.target.closest('#theme-cbx')) closeMenu(); });
 }
 
 // Type-ahead under the query field: once a root note is typed, offer the chords

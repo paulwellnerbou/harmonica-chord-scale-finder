@@ -22,8 +22,10 @@ const FONT = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', R
 const TAB_FONT = `700 ${cq(1.45)}px ${FONT}`;
 const TAB_NAME_FONT = `600 ${cq(1.15)}px ${FONT}`;
 const INK = [34, 27, 18]; // --box-ink, also drawn at reduced alpha — see inkAlpha
-// Mirrors the CSS custom properties in styles.css so a copied image matches the
-// on-screen (bright) instrument. The export keeps a transparent background.
+// Refilled from the page's own custom properties on every render (syncColors),
+// so a copied image matches whatever instrument the current theme is showing —
+// the cover plate differs between themes. What follows are the defaults, and
+// the fallback if a property ever reads back empty. Background stays transparent.
 const COLORS = {
   reed: ['#f7f0e2', '#d8caad'],
   bend: ['#d7e8ed', '#83b3bf'],
@@ -38,6 +40,30 @@ const COLORS = {
   ink: `rgb(${INK})`,
 };
 const inkAlpha = (a) => `rgba(${INK}, ${a})`;
+
+// Read the instrument back off the page. A second hard-coded copy here is
+// exactly what would let the export drift from the harp it has to mirror.
+function syncColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = (name) => cs.getPropertyValue(name).trim();
+  const pair = (a, b, fallback) => { const x = v(a), y = v(b); return x && y ? [x, y] : fallback; };
+  COLORS.reed = pair('--reed-fill', '--reed-border', COLORS.reed);
+  COLORS.bend = pair('--bend-fill', '--bend-border', COLORS.bend);
+  COLORS.over = pair('--over-fill', '--over-border', COLORS.over);
+  COLORS.match = pair('--match-fill', '--match', COLORS.match);
+  COLORS.tone = pair('--tone-fill', '--tone', COLORS.tone);
+  COLORS.root = pair('--root-fill', '--root', COLORS.root);
+  COLORS.plate = pair('--plate-hi', '--plate-lo', COLORS.plate);
+  COLORS.comb = pair('--comb-hi', '--comb-lo', COLORS.comb);
+  COLORS.plateEdge = v('--plate-edge') || COLORS.plateEdge;
+  // INK is mutated in place — inkAlpha() closes over the array, not its value.
+  const ink = /^#([0-9a-f]{6})$/i.exec(v('--box-ink'));
+  if (ink) {
+    const n = parseInt(ink[1], 16);
+    INK[0] = (n >> 16) & 255; INK[1] = (n >> 8) & 255; INK[2] = n & 255;
+  }
+  COLORS.ink = `rgb(${INK})`;
+}
 const TAG = { overblow: 'OB', overdraw: 'OD' };
 
 function baseStyle(type) {
@@ -101,6 +127,7 @@ function layoutTabStrip(parsed, harp, show, maxW) {
 }
 
 export function renderHarpImage({ key, tuning, parsed, triad, showDrawBends, showBlowBends, showOverblow, showOverdraw, title, subtitle }) {
+  syncColors();
   const harp = buildHarp(key, tuning);
   const show = { showDrawBends, showBlowBends, showOverblow, showOverdraw };
   const bluePc = blueNotePc(parsed);

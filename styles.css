@@ -1,25 +1,41 @@
 /* ===========================================================================
-   Theme tokens. The PAGE CHROME switches light/dark; the INSTRUMENT (plate,
-   comb, note keys) stays bright in both themes so the transparent PNG export
-   keeps matching the on-screen harp.
+   Theme tokens. Three themes: `warm` (daylight), `cool` (overcast) and the
+   default `dark` (night). The INSTRUMENT stays bright in all three so the
+   transparent PNG export reads on any background; what it does NOT do any more
+   is stay identical between them — `cool` swaps the cream cover plate for
+   nickel, so the page holds one temperature. exporter.js reads these
+   properties back off the page at render time and follows along.
+
+   The comb is pearwood in every theme. It is a wooden comb.
    =========================================================================== */
 :root {
   color-scheme: dark;
 
-  /* Warm "blues club" backdrop the instrument is lit against. */
-  --bg-0: #14100b;
-  --bg-1: #1e1710;
-  --glow: rgba(232, 156, 62, 0.20);
+  /* Blues-club backdrop: the room is cool and dim, the lamp over the stage is
+     warm and off to one side. Warm instrument against cool ground — a centred
+     amber wash would make the whole page read as one temperature. */
+  --bg-0: #0d1116;
+  --bg-1: #1d2531;
+  /* Glow = a hot core plus a wide halo, not one broad wash. The core sits out
+     in the left margin at 9% where nothing is set, so it can burn brighter
+     without lifting the ground under the labels and chips; the halo carries the
+     light across the page at an alpha the quiet text tiers still clear. */
+  --glow: rgba(243, 176, 86, 0.34);
   --backdrop:
-    radial-gradient(115% 75% at 50% -8%, var(--glow), transparent 55%),
-    radial-gradient(80% 55% at 50% 4%, rgba(200, 120, 40, 0.10), transparent 60%),
-    linear-gradient(180deg, var(--bg-1), var(--bg-0) 62%);
+    radial-gradient(38% 26% at 9% -6%, rgba(255, 214, 150, 0.62), transparent 70%),
+    radial-gradient(150% 105% at 20% -14%, var(--glow), transparent 68%),
+    radial-gradient(95% 64% at 74% 0%, rgba(208, 130, 50, 0.17), transparent 66%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0) 66%);
   --grain-opacity: 0.05;
   --grain-blend: overlay;
 
-  --ink: #f4ecdd;
-  --muted: #ab9c85;
-  --faint: #7c6f5d;
+  --ink: #e9ecf1;
+  /* Sized against the ground at its BRIGHTEST — the lamp lifts the top-left
+     corner, where the controls sit, from luma ~13 to ~75, and these two tiers
+     were originally picked against the unlit ground. --faint at #69717e failed
+     AA even there (3.8:1), and sank to 2.3:1 under the glow. */
+  --muted: #c6cdd7;
+  --faint: #a9b1be;
 
   /* Signature brass accent — the reed metal of a real harp. */
   --brass: #e8a53f;
@@ -30,7 +46,7 @@
   --btn-bg: #e79a2b;
   --btn-fg: #2a1600;
 
-  --line: rgba(214, 196, 158, 0.22);
+  --line: rgba(190, 206, 226, 0.18);
   --fill-1: rgba(255, 255, 255, 0.045); /* raised fill: ghost buttons, pills */
   --fill-2: rgba(255, 255, 255, 0.09);  /* its hover */
   --track-off: rgba(255, 255, 255, 0.16);
@@ -39,19 +55,52 @@
   --input-bg-focus: rgba(255, 255, 255, 0.08);
   --input-shadow: 0 0 transparent;
 
-  --surface: #2a2118;                    /* popover menus */
-  --surface-border: rgba(242, 225, 188, 0.16);
+  --surface: #1b222b;                    /* popover menus */
+  --surface-border: rgba(196, 212, 232, 0.16);
   --surface-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
 
-  --stage-bg:
-    radial-gradient(120% 120% at 50% -20%, rgba(232, 165, 63, 0.09), transparent 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.16));
-  --stage-border: rgba(214, 196, 158, 0.12);
-  --stage-shadow: 0 34px 70px -34px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --promo-lit: linear-gradient(180deg, rgba(232, 165, 63, 0.17), rgba(232, 165, 63, 0.07));
+  /* --- Panel construction ---------------------------------------------------
+     Every raised surface — the stage, the info panel, the promo button — is
+     built here, ONCE. A panel is the ground with light played across it: the
+     lamp re-lit from the page's own corner, then a vertical pass that lifts the
+     top edge and settles just below the ground at the bottom, so the lower half
+     of a panel reads as the same surface it sits on.
 
-  --panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.14));
+     The themes below override ONLY the five colours. None of them redefines the
+     geometry — that is what let the three drift apart from each other before. */
+  --lamp:    rgba(232, 165, 63, 0.14);  /* the re-played light */
+  --lift:    rgba(255, 255, 255, 0.035);/* top of the vertical pass */
+  --sink:    rgba(0, 0, 0, 0.30);       /* bottom — just under the ground.
+       Tune per theme by RENDERED effect, not by matching this number: the same
+       alpha shifts a bright ground many times further than a near-black one. */
+  --cast:    rgba(0, 0, 0, 0.75);       /* the shadow it throws — like --sink,
+       tune per theme by rendered effect: 0.42 is invisible over near-black and
+       a heavy band over a bright ground. */
+  --edge-hi: rgba(255, 255, 255, 0.05); /* the lit top edge */
+
+  --stage-bg:
+    radial-gradient(130% 140% at 44% -14%, var(--lamp), transparent 62%),
+    linear-gradient(180deg, var(--lift), var(--sink));
+  --stage-border: rgba(190, 206, 226, 0.12);
+  --stage-shadow: 0 34px 70px -34px var(--cast), inset 0 1px 0 var(--edge-hi);
+
+  /* Same colours as the stage, gentler stops. The info panel and the promo
+     button are a fraction of the stage's height, so the stage's ramp compressed
+     into them changes far too fast per pixel. The lamp is given a much larger,
+     higher-centred circle, and the vertical pass puts --sink at 210% so the box
+     only ever shows its first half — a short card never reaches the ground. */
+  --panel-bg:
+    radial-gradient(160% 420% at 42% -150%, var(--lamp), transparent 66%),
+    linear-gradient(180deg, var(--lift), var(--sink) 210%);
+
+  /* Anything using these MUST also set `background-origin: border-box`. The
+     default origin is the padding box while the clip is the border box, so the
+     1px border strip paints the START of the repeated tile — --lift — which
+     draws a light hairline round the bottom and sides. Invisible in dark, where
+     --lift is 0.035; obvious in the light themes, where it is 0.34. */
   --panel-border: var(--line);
-  --panel-shadow: 0 20px 44px -28px rgba(0, 0, 0, 0.7);
+  --panel-shadow: 0 20px 44px -28px var(--cast), inset 0 1px 0 var(--edge-hi);
 
   /* --- Instrument (shared across themes) --- */
   --plate-hi: #f4ecdd;
@@ -70,6 +119,7 @@
   --root:  #ec7a12;  --root-fill:  #ffe3c1;
   --blue-note: #2f6ad0; /* lights the blue note from inside — see .blue-note */
 
+  --h1-size: clamp(1.5rem, 3.7vw, 2.2rem);
   --radius: 12px;
   --box-h: 46px;
   --reed-h: 62px;
@@ -78,25 +128,28 @@
   font-synthesis-weight: none;
 }
 
-:root[data-theme="light"] {
+:root[data-theme="warm"] {
   color-scheme: light;
 
-  /* Same spotlight, inverted: the lit core is the *brightest* point here, so the
-     paper has to deepen into amber and shade off at the edges for it to read. */
-  --bg-0: #e0cfb2;
-  --bg-1: #efe3cd;
-  --glow: rgba(255, 254, 250, 1);
+  /* Amber paper, and the lamp is amber too — warm over warm never passes
+     through the khaki that made this bloom unusable on the cool ground, so
+     here it stays. Off to one side rather than centred, as in every theme. */
+  --bg-0: #e1d0b3;
+  --bg-1: #f6ecdb;
+  --glow: rgba(255, 253, 246, 1);
   --backdrop:
-    radial-gradient(86% 55% at 50% -6%, var(--glow), transparent 66%),
-    radial-gradient(122% 82% at 50% -8%, rgba(246, 182, 92, 0.5), transparent 66%),
-    radial-gradient(140% 110% at 50% 22%, transparent 38%, rgba(120, 88, 42, 0.19)),
-    linear-gradient(180deg, var(--bg-1), var(--bg-0) 76%);
+    radial-gradient(92% 62% at 26% -6%, var(--glow), transparent 66%),
+    radial-gradient(128% 90% at 24% -12%, rgba(246, 182, 92, 0.54), transparent 70%),
+    radial-gradient(150% 115% at 58% 28%, transparent 34%, rgba(112, 82, 40, 0.18)),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0) 78%);
   --grain-opacity: 0.035;
   --grain-blend: multiply;
 
+  /* Warmer than the chrome of the other themes, but not the near-invisible
+     greys the first light theme used — those sat at 2.2:1 on this ground. */
   --ink: #2c2318;
-  --muted: #6d6350;
-  --faint: #9a8d76;
+  --muted: #4f4939;
+  --faint: #5f5745;
 
   --brass: #a9670f;
   --brass-lit: #c9821b;
@@ -105,24 +158,98 @@
   --line: rgba(74, 56, 26, 0.16);
   --fill-1: rgba(74, 56, 26, 0.05);
   --fill-2: rgba(74, 56, 26, 0.1);
-  --input-bg: #fffaf0;   /* lightest card color, so fields read as bright inputs */
-  --input-bg-focus: #ffffff;
+  --input-bg: rgba(255, 251, 241, 0.82);
+  --input-bg-focus: rgba(255, 253, 247, 0.99);
   --input-shadow: inset 0 1px 2px rgba(74, 56, 26, 0.07);
   --track-off: rgba(74, 56, 26, 0.2);
 
-  --surface: #fffaf0;
+  --surface: #fffaf0;   /* popovers stay opaque — they overlap the harp */
   --surface-border: rgba(74, 56, 26, 0.14);
   --surface-shadow: 0 18px 44px rgba(80, 60, 25, 0.22);
 
-  --stage-bg:
-    radial-gradient(120% 120% at 50% -20%, rgba(230, 150, 55, 0.1), transparent 58%),
-    linear-gradient(180deg, #fffaf0, #f4ead8);
+  /* Hover lights the button with this theme's own light — amber here, matching
+     its lamp. See the cool theme, which uses white for the same reason. */
+  --promo-lit: linear-gradient(180deg, rgba(238, 172, 88, 0.24), rgba(238, 172, 88, 0.10));
+  /* Cards are the ground with light played across them, not a fill laid on top:
+     the lamp comes in at the same upper-left corner it does on the page, and the
+     vertical pass fades to slightly BELOW the ground by the bottom edge — so a
+     panel's lower half is the ground, exactly as in dark. Keep these alphas low;
+     anything like a 0.5 white floor makes the panel its own colour again. */
+  --lamp:    rgba(255, 247, 229, 0.90);
+  --lift:    rgba(255, 252, 244, 0.34);
+  --sink:    rgba(92, 64, 26, 0.045);
+  --cast:    rgba(80, 60, 25, 0.13);
+  --edge-hi: rgba(255, 255, 255, 0.5);
   --stage-border: rgba(74, 56, 26, 0.14);
-  --stage-shadow: 0 26px 54px -30px rgba(80, 60, 25, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-
-  --panel-bg: linear-gradient(180deg, #fffaf0, #f7eede);
   --panel-border: rgba(74, 56, 26, 0.13);
-  --panel-shadow: 0 18px 40px -26px rgba(80, 60, 25, 0.32);
+}
+
+:root[data-theme="cool"] {
+  color-scheme: light;
+
+  /* Same lamp, inverted: the lit core is the *brightest* point here, so the
+     desk shades off at the edges for the light to read. The ground is blue-grey
+     on purpose — amber over a green-grey interpolates through khaki and the
+     whole midsection turns muddy; over blue it passes through neutral. */
+  --bg-0: #d4d9df;
+  --bg-1: #f1f4f8;
+  --glow: rgba(255, 255, 255, 1);
+  --backdrop:
+    radial-gradient(104% 70% at 24% -8%, var(--glow), transparent 68%),
+    radial-gradient(150% 115% at 60% 30%, transparent 32%, rgba(30, 44, 62, 0.19)),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0) 78%);
+  --grain-opacity: 0.035;
+  --grain-blend: multiply;
+
+  --ink: #1f242b;
+  --muted: #474e58;   /* 5.8:1 on the ground at its darkest */
+  --faint: #565e6a;   /* 4.6:1 — the quiet tier, still clears AA */
+
+  /* The accent is cool here too — an orange toggle on a blue-grey page was the
+     last warm thing left in the chrome. The INSTRUMENT keeps its own colours:
+     root, bend and overblow hues carry meaning and are shared with the export,
+     so the harp still shows orange and amber where those mean something. */
+  --brass: #21527f;   /* 5.0:1 as link text on this ground; #255a90 was 4.4 */
+  --brass-lit: #2f6ba8;
+  --brass-soft: rgba(37, 90, 144, 0.13);
+  --btn-bg: #2f6ba8;   /* solid CTA: switches, the playing state */
+  --btn-fg: #ffffff;
+
+  --line: rgba(34, 46, 66, 0.16);
+  --fill-1: rgba(34, 46, 66, 0.05);
+  --fill-2: rgba(34, 46, 66, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.72);
+  --input-bg-focus: rgba(255, 255, 255, 0.97);
+  --input-shadow: inset 0 1px 2px rgba(34, 46, 66, 0.07);
+  --track-off: rgba(34, 46, 66, 0.2);
+
+  --surface: #f2f5f9;   /* popovers stay opaque — they overlap the harp */
+  --surface-border: rgba(34, 46, 66, 0.14);
+  --surface-shadow: 0 18px 44px rgba(32, 42, 60, 0.22);
+
+  /* Hover lights the button with this theme's own light — white here, not the
+     amber the warm and dark themes use, which would put a warm wash on a cool
+     page. The brass border and arrow still carry the accent. */
+  --promo-lit: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.36));
+  /* Same construction as warm, but what gets re-played across the panel is the
+     light itself, not the amber: an amber wash here shifts temperature across a
+     single card, which is the seam this palette exists to avoid. White gives
+     the same modelling with no hue in it. */
+  --lamp:    rgba(255, 255, 255, 0.95);
+  --lift:    rgba(255, 255, 255, 0.34);
+  --sink:    rgba(28, 42, 60, 0.045);
+  --cast:    rgba(34, 46, 66, 0.13);
+  --edge-hi: rgba(255, 255, 255, 0.5);
+  --stage-border: rgba(34, 46, 66, 0.14);
+  --panel-border: rgba(34, 46, 66, 0.13);
+
+  /* Nickel cover plate — the one theme where the instrument is cool too, so
+     the page holds a single temperature. The comb stays pearwood. */
+  --plate-hi: #eef1f4;
+  --plate-lo: #d5dbe1;
+  --plate-edge: #b3bcc6;
+  --box-ink: #1c2128;
+  --reed-fill: #f4f6f8;  --reed-border: #ccd3da;
 }
 
 * { box-sizing: border-box; }
@@ -178,7 +305,7 @@ body::after {
   display: grid;
   place-items: center;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 11px;
   border: 1px solid var(--line);
   background: var(--fill-1);
   color: var(--brass-lit);
@@ -199,56 +326,71 @@ body::after {
   line-height: 1;
   transition: opacity 0.28s ease, rotate 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), scale 0.3s ease;
 }
-/* Show the icon for the theme you'd switch TO. */
-:root[data-theme="dark"]  .ic-sun  { opacity: 1;   rotate: 0deg;   scale: 1;    }
-:root[data-theme="dark"]  .ic-moon { opacity: 0;   rotate: -90deg; scale: 0.4;  }
-:root[data-theme="light"] .ic-sun  { opacity: 0;   rotate: 90deg;  scale: 0.4;  }
-:root[data-theme="light"] .ic-moon { opacity: 1;   rotate: 0deg;   scale: 1;    }
+/* The button carries the theme you are IN — sun for warm daylight, cloud for
+   the cooler overcast one, moon for night. Only that one is visible. */
+.theme-toggle .ic { opacity: 0; rotate: -90deg; scale: 0.4; }
+:root[data-theme="warm"] .ic-warm { opacity: 1; rotate: 0deg; scale: 1; }
+:root[data-theme="cool"] .ic-cool { opacity: 1; rotate: 0deg; scale: 1; }
+:root[data-theme="dark"] .ic-dark { opacity: 1; rotate: 0deg; scale: 1; }
+
+/* --- Theme menu ------------------------------------------------------------*/
+.theme-cbx { position: relative; }
+.theme-menu {
+  top: calc(100% + 8px); right: 0;
+  width: max-content; min-width: 152px;
+  list-style: none; margin: 0;
+  transform-origin: top right;
+}
+.theme-opt {
+  display: grid; grid-template-columns: 1.35em 1fr auto; align-items: center;
+  gap: 9px; padding: 8px 11px; border-radius: 8px; cursor: pointer;
+  color: var(--ink); font-weight: 600; font-size: 0.95rem;
+  transition: background 0.13s ease, color 0.13s ease;
+}
+.theme-opt .ic-glyph { font-size: 1.05em; line-height: 1; text-align: center; }
+.theme-opt::after { content: ""; font-size: 0.85em; color: var(--brass); }
+.theme-opt[aria-selected="true"]::after { content: "✓"; }
+.theme-opt:hover, .theme-opt.active { background: var(--brass-soft); color: var(--brass-lit); }
 
 /* --- Header ----------------------------------------------------------------*/
-.topbar { text-align: center; margin-bottom: 26px; }
+/* A masthead rather than a hero: the harp sits in the left margin of the title
+   block, and the block starts on the same column the controls and the stage
+   below line up on. */
+.topbar {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: clamp(10px, 1.6vw, 15px);
+  row-gap: 7px;
+  align-items: start;
+  max-width: 880px;
+  margin: 0 auto 24px;
+}
 .brand-mark {
+  grid-row: 1;
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 14px;
-  border-radius: 16px;
+  /* The title's own first-line box, so the harp centres on the words instead of
+     hanging off the top of a heading that has wrapped. */
+  height: calc(var(--h1-size) * 1.06);
   color: var(--brass);
-  background: var(--brass-soft);
-  border: 1px solid color-mix(in srgb, var(--brass) 26%, transparent);
 }
-.brand-mark svg { width: 38px; height: 38px; display: block; }
+.brand-mark svg { width: clamp(34px, 4.4vw, 44px); height: auto; display: block; }
 .topbar h1 {
   margin: 0;
-  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-  font-optical-sizing: auto;
-  font-weight: 600;
-  font-size: clamp(2rem, 5.2vw, 3.15rem);
-  line-height: 1.03;
-  letter-spacing: -0.018em;
-  background: linear-gradient(168deg, var(--ink) 20%, var(--brass) 118%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+  font-family: 'Bevan', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  grid-column: 2;
+  font-size: var(--h1-size);
+  line-height: 1.06;
+  letter-spacing: -0.005em;
+  color: var(--ink);
 }
 .tagline {
-  margin: 9px auto 0;
-  max-width: 54ch;
+  grid-column: 2;
+  margin: 0;
   color: var(--muted);
-  font-size: 1rem;
-  line-height: 1.5;
-  text-wrap: balance; /* keeps the last line from shrinking to a single word */
-}
-.topbar::after {
-  content: "";
-  display: block;
-  width: 66px;
-  height: 3px;
-  margin: 16px auto 0;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, var(--brass), transparent);
+  font-size: 0.95rem;
+  line-height: 1.45;
 }
 
 /* --- Controls --------------------------------------------------------------*/
@@ -443,7 +585,7 @@ body::after {
   border: 1px solid var(--line);
   background: var(--fill-1);
   color: var(--ink);
-  padding: 6px 13px; border-radius: 999px; cursor: pointer;
+  padding: 6px 12px; border-radius: 7px; cursor: pointer;
   font: inherit; font-size: 0.86rem; font-weight: 600;
   transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.08s ease;
 }
@@ -463,6 +605,7 @@ body::after {
   padding: clamp(16px, 3vw, 30px) clamp(8px, 2vw, 22px) clamp(14px, 2.4vw, 24px);
   border-radius: 22px;
   background: var(--stage-bg);
+  background-origin: border-box;
   border: 1px solid var(--stage-border);
   box-shadow: var(--stage-shadow);
   transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
@@ -973,14 +1116,18 @@ body::after {
 }
 
 /* --- Info panel ------------------------------------------------------------*/
+/* The selection gets a box — it is a result, not a footnote — but a quieter one
+   than the stage: tighter radius, no shadow, so the harp stays the only thing
+   on the page that floats. */
 .info {
-  max-width: 880px; margin: 24px auto 0;
+  max-width: 880px; margin: 24px auto 0; padding: 16px 18px;
   background: var(--panel-bg);
+  background-origin: border-box;
   border: 1px solid var(--panel-border);
-  border-radius: 16px; padding: 18px 20px;
-  box-shadow: var(--panel-shadow);
+  border-radius: 12px;
   transition: background 0.4s ease, border-color 0.4s ease;
 }
+.info:empty { display: none; }
 .info .hint { margin: 0; color: var(--muted); line-height: 1.55; }
 .info .hint.warn { color: #e0693f; }
 .info code {
@@ -997,8 +1144,10 @@ body::after {
 .scale-play.is-playing { background: var(--btn-bg); color: var(--btn-fg); border-color: transparent; }
 .detected strong {
   font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
   font-weight: 600;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
+  letter-spacing: -0.005em;
   color: var(--ink);
 }
 /* Direct child only, so it can't override the .acc glyph nested inside <strong>. */
@@ -1026,7 +1175,7 @@ body::after {
 .chip {
   position: relative; /* anchors the sounding ring */
   display: inline-flex; align-items: baseline; gap: 5px;
-  padding: 5px 12px; border-radius: 999px;
+  padding: 5px 12px; border-radius: 10px;
   font: inherit; font-weight: 700; border: 1.5px solid;
   background: none; cursor: pointer;
   transition: translate 0.1s ease, box-shadow 0.15s ease;
@@ -1071,43 +1220,62 @@ body::after {
 /* --- Cross-promo card (sibling Chord Charts app) ---------------------------*/
 .cross-promo {
   display: flex; align-items: center; gap: 16px;
-  max-width: 880px; margin: 16px auto 0; padding: 16px 18px;
+  max-width: 880px; margin: 22px auto 0; padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  position: relative;
+  isolation: isolate;   /* keeps the lit overlay behind the content, not the page */
   background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  box-shadow: var(--panel-shadow);
-  text-decoration: none; color: inherit;
-  transition: border-color 0.18s ease, background 0.4s ease, transform 0.12s ease;
+  background-origin: border-box;
+  text-decoration: none; color: inherit; cursor: pointer;
+  transition: border-color 0.22s ease, transform 0.1s ease, box-shadow 0.22s ease;
 }
-.cross-promo:hover { border-color: color-mix(in srgb, var(--brass) 45%, var(--panel-border)); transform: translateY(-1px); }
-.cross-promo:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+/* The lit state is an overlay whose opacity animates, not a second background:
+   `background-image` holds a gradient here, and gradients do not interpolate —
+   transitioning `background` would simply snap. */
+.cross-promo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--promo-lit);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+.cross-promo:hover {
+  border-color: var(--brass);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -16px rgba(0, 0, 0, 0.5);
+}
+.cross-promo:hover::before { opacity: 1; }
+.cross-promo:active { transform: translateY(0); box-shadow: none; }
+.cross-promo:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
 .cross-promo-mark {
   display: grid; place-items: center; flex: 0 0 auto;
-  width: 52px; height: 52px; border-radius: 14px;
-  color: var(--brass); background: var(--brass-soft);
-  border: 1px solid color-mix(in srgb, var(--brass) 26%, transparent);
+  width: 44px; height: 44px;
+  color: var(--brass);
 }
 .cross-promo-mark svg { width: 34px; height: 34px; }
 .cross-promo-body { flex: 1 1 auto; min-width: 0; }
 .cross-promo-teaser {
-  display: block; font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto;
-  font-size: 1.15rem; font-weight: 600; line-height: 1.15; color: var(--ink);
+  display: block; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em;
+  line-height: 1.25; color: var(--ink);
 }
 .cross-promo-desc { display: block; margin-top: 5px; font-size: 0.9rem; line-height: 1.45; color: var(--muted); }
 .cross-promo-desc b { color: var(--ink); font-weight: 600; }
 .cross-promo-go {
   flex: 0 0 auto; display: grid; place-items: center;
-  width: 38px; height: 38px; border-radius: 50%;
-  color: var(--brass); background: var(--brass-soft);
-  border: 1px solid color-mix(in srgb, var(--brass) 26%, transparent);
-  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  width: 30px; height: 30px;
+  color: var(--brass);
+  transition: color 0.18s ease, transform 0.18s ease;
 }
-.cross-promo-go svg { width: 16px; height: 16px; }
-.cross-promo:hover .cross-promo-go { background: var(--btn-bg); color: var(--btn-fg); border-color: var(--btn-bg); transform: translateX(2px); }
+.cross-promo-go svg { width: 17px; height: 17px; }
+.cross-promo:hover .cross-promo-go { color: var(--brass-lit); transform: translateX(4px); }
 
 /* --- Footer ----------------------------------------------------------------*/
 .foot {
-  max-width: 880px; margin: 40px auto 0; padding-top: 16px;
+  max-width: 880px; margin: 26px auto 0; padding-top: 20px;
   border-top: 1px solid var(--line);
   color: var(--muted); font-size: 0.8rem;
 }
@@ -1155,6 +1323,18 @@ body::after {
     background: var(--ring);
   }
   .box.is-sounding, .chip.is-sounding { animation-name: none; }
+}
+
+/* Reserve the fixed corner actions' lane once the viewport stops being wide
+   enough to clear the centred 880px column on its own. */
+@media (max-width: 1040px) {
+  .topbar { padding-right: 104px; }
+}
+
+/* Too narrow to give the corner actions their own lane without squeezing the
+   title into a column a few words wide — let the masthead start below them. */
+@media (max-width: 640px) {
+  .topbar { padding-right: 0; padding-top: 50px; }
 }
 
 @media (max-width: 560px) {
