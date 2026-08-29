@@ -12,7 +12,7 @@
         var saved = localStorage.getItem('harp-theme');
         if (saved === 'light') saved = 'warm';   // the two-theme era's value
         var t = (saved === 'cool' || saved === 'warm' || saved === 'dark') ? saved
-          : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'cool' : 'dark');
+          : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'warm' : 'dark');
         document.documentElement.dataset.theme = t;
       } catch (e) { document.documentElement.dataset.theme = 'dark'; }
     })();
