@@ -1217,10 +1217,17 @@ body::after {
 .sw.tone { background: var(--tone-fill); border-color: var(--tone); }
 .sw.miss { background: var(--fill-1); border-color: var(--line); }
 
-/* --- Cross-promo card (sibling Chord Charts app) ---------------------------*/
+/* --- Cross-promo cards (sibling apps) -------------------------------------*/
+.promos {
+  display: grid;
+  gap: 12px;
+  max-width: 880px;
+  margin: 22px auto 0;
+}
+@media (min-width: 720px) { .promos { grid-template-columns: 1fr 1fr; } }
 .cross-promo {
   display: flex; align-items: center; gap: 16px;
-  max-width: 880px; margin: 22px auto 0; padding: 18px 20px;
+  padding: 18px 20px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   position: relative;
